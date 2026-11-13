@@ -86,21 +86,21 @@ def create_deck():
     tf.word_wrap = True
 
     p0 = tf.paragraphs[0]
-    p0.text = "ĐỒ ÁN TỐT NGHIỆP / KỸ SƯ NHÚNG HỆ THỐNG Ô TÔ"
+    p0.text = "GRADUATION CAPSTONE THESIS / AUTOMOTIVE EMBEDDED SYSTEMS"
     p0.font.size = Pt(13)
     p0.font.bold = True
     p0.font.color.rgb = ACCENT_CYAN
     p0.space_after = Pt(12)
 
     p1 = tf.add_paragraph()
-    p1.text = "AUTOMOTIVE DOMAIN GATEWAY & BỘ ĐIỀU KHIỂN ĐỘNG CƠ THỜI GIAN THỰC CHUẨN AUTOSAR CLASSIC"
+    p1.text = "AUTOMOTIVE DOMAIN GATEWAY & AUTOSAR CLASSIC REAL-TIME MOTOR CONTROLLER"
     p1.font.size = Pt(25)
     p1.font.bold = True
     p1.font.color.rgb = TEXT_WHITE
     p1.space_after = Pt(8)
 
     p2 = tf.add_paragraph()
-    p2.text = "Triển Khai Trên Nền Tảng Vi Xử Lý Đa Nhân Dị Thể STM32MP157 (Cortex-M4 Zephyr RTOS & Cortex-A7 OpenSTLinux)"
+    p2.text = "Deployed on STM32MP157 Heterogeneous Multi-Core SoC (Cortex-M4 Zephyr RTOS & Cortex-A7 OpenSTLinux)"
     p2.font.size = Pt(15)
     p2.font.color.rgb = ACCENT_BLUE
 
@@ -111,41 +111,41 @@ def create_deck():
     mtf.word_wrap = True
 
     mp1 = mtf.paragraphs[0]
-    mp1.text = "• Hệ Thống: STM32MP157D-DK1 (Dual A7 @ 800MHz + Cortex-M4 @ 209MHz)   |   • Chuẩn: AUTOSAR Classic, ISO 26262"
+    mp1.text = "• System: STM32MP157D-DK1 (Dual A7 @ 800MHz + Cortex-M4 @ 209MHz)   |   • Standards: AUTOSAR Classic, ISO 26262"
     mp1.font.size = Pt(12)
     mp1.font.color.rgb = TEXT_MUTED
     mp1.space_after = Pt(4)
 
     mp2 = mtf.add_paragraph()
-    mp2.text = "• Thuật Toán: PID Vận Tốc Nhận Dạng MATLAB (Best Fit 80.95%)   |   • Đo Kiểm: Saleae Logic 2 (Jitter 6.375 µs, IPC 1.999 ms)"
+    mp2.text = "• Control: MATLAB Identified Velocity PID (Best Fit 80.95%)   |   • Validation: Saleae Logic 2 (Jitter 6.375 µs, IPC 1.999 ms)"
     mp2.font.size = Pt(12)
     mp2.font.color.rgb = ACCENT_GOLD
 
     # =========================================================================
-    # SLIDE 2: BỐI CẢNH & ĐẶT VẤN ĐỀ
+    # SLIDE 2: CONTEXT & PROBLEM STATEMENT
     # =========================================================================
     s2 = prs.slides.add_slide(blank_layout)
     add_bg(s2)
-    add_header(s2, "1. Bối Cảnh Ngành Ô Tô & Xu Hướng Chuyển Dịch Kiến Trúc E/E")
+    add_header(s2, "1. Automotive Industry Context & E/E Architecture Transition")
 
-    # Left Card: Kiến trúc cũ
+    # Left Card: Legacy Distributed Architecture
     add_card(s2, Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2))
     b1 = s2.shapes.add_textbox(Inches(1.1), Inches(1.8), Inches(5.0), Inches(4.7))
     tf1 = b1.text_frame
     tf1.word_wrap = True
 
     p = tf1.paragraphs[0]
-    p.text = "❌ Kiến Trúc Phân Tán Cũ (Distributed ECUs)"
+    p.text = "❌ Legacy Distributed Architecture (Distributed ECUs)"
     p.font.size = Pt(16)
     p.font.bold = True
     p.font.color.rgb = ACCENT_RED
     p.space_after = Pt(14)
 
     bullets1 = [
-        "Hơn 100-150 hộp ECU rời rạc điều khiển từng tính năng riêng biệt (phanh, động cơ, cửa kính, điều hòa...).",
-        "Hàng kilomet dây điện CAN/LIN chằng chịt làm tăng khối lượng xe và chi phí sản xuất.",
-        "Xử lý dữ liệu phân mảnh, không thể đồng bộ hóa cảm biến độ phân giải cao.",
-        "Khó khăn nghiêm trọng trong việc nâng cấp tính năng phần mềm qua mạng (OTA)."
+        "Over 100-150 discrete ECUs controlling dedicated vehicle functions (braking, powertrain, body, HVAC...).",
+        "Kilometers of tangled CAN/LIN wiring harnesses increasing vehicle curb weight and production costs.",
+        "Fragmented data processing preventing synchronized high-resolution sensor fusion.",
+        "Severe bottlenecks in software maintenance and Over-The-Air (OTA) feature upgrades."
     ]
     for b in bullets1:
         p = tf1.add_paragraph()
@@ -154,24 +154,24 @@ def create_deck():
         p.font.color.rgb = TEXT_MUTED
         p.space_after = Pt(10)
 
-    # Right Card: Kiến trúc mới
+    # Right Card: Modern Centralized Architecture
     add_card(s2, Inches(6.8), Inches(1.6), Inches(5.7), Inches(5.2))
     b2 = s2.shapes.add_textbox(Inches(7.1), Inches(1.8), Inches(5.1), Inches(4.7))
     tf2 = b2.text_frame
     tf2.word_wrap = True
 
     p = tf2.paragraphs[0]
-    p.text = "✅ Kiến Trúc Tập Trung (Domain / Zonal Architecture)"
+    p.text = "✅ Centralized Architecture (Domain / Zonal Architecture)"
     p.font.size = Pt(16)
     p.font.bold = True
     p.font.color.rgb = ACCENT_GREEN
     p.space_after = Pt(14)
 
     bullets2 = [
-        "Hội tụ nhiều cụm chức năng vào một Bộ Điều Khiển Miền tập trung (Automotive Domain Gateway).",
-        "Cắt giảm tới 40% trọng lượng dây cáp truyền dẫn trên toàn bộ xe.",
-        "Xử lý tập trung cảm biến thời gian thực, mở đường cho xe tự hành (ADAS) và xe điện thông minh (EV).",
-        "Yêu cầu phần cứng vi xử lý phải tích hợp vừa thời gian thực vừa tính toán thông minh."
+        "Consolidates functional clusters into centralized Automotive Domain Gateways.",
+        "Reduces vehicle wiring harness weight and complexity by up to 40%.",
+        "Enables centralized real-time sensor processing, paving the way for ADAS and smart EVs.",
+        "Demands heterogeneous SoC hardware combining hard real-time safety with smart computing."
     ]
     for b in bullets2:
         p = tf2.add_paragraph()
@@ -181,11 +181,11 @@ def create_deck():
         p.space_after = Pt(10)
 
     # =========================================================================
-    # SLIDE 3: XUNG ĐỘT KỸ THUẬT CỐT LÕI
+    # SLIDE 3: CORE TECHNICAL CONFLICT
     # =========================================================================
     s3 = prs.slides.add_slide(blank_layout)
     add_bg(s3)
-    add_header(s3, "2. Thách Thức Kỹ Thuật: Cuộc Xung Đột Giữa Hai Miền Tính Toán")
+    add_header(s3, "2. Technical Challenge: Conflict Between Opposing Computing Domains")
 
     # Top comparison table card
     add_card(s3, Inches(0.8), Inches(1.6), Inches(11.733), Inches(3.6))
@@ -199,10 +199,10 @@ def create_deck():
     tbl.columns[2].width = Inches(4.366)
 
     table_data = [
-        ("Tiêu Chí Kỹ Thuật", "Miền Điều Khiển Khung Gầm (Chassis ECU)", "Miền Viễn Thông & Thông Tin (Telematics / Infotainment)"),
-        ("Ràng Buộc Thời Gian", "HARD REAL-TIME (Chu kỳ 10ms, Jitter < 50µs)", "SOFT REAL-TIME / BEST-EFFORT (Trễ vài chục ms)"),
-        ("Hệ Điều Hành", "Zephyr RTOS / Chuẩn AUTOSAR Classic", "OpenSTLinux / Android Automotive OS"),
-        ("Độ Tin Cậy & Rủi Ro", "Tất định (Deterministic), KHÔNG ĐƯỢC TREO (Zero Crash)", "Nhiều dịch vụ phức tạp, DỄ CRASH / KERNEL PANIC")
+        ("Technical Metric", "Chassis Control Domain (Chassis ECU)", "Telematics & Infotainment Domain"),
+        ("Timing Constraints", "HARD REAL-TIME (10ms Cycle, Jitter < 50µs)", "SOFT REAL-TIME / BEST-EFFORT (Tens of ms Latency)"),
+        ("Operating System", "Zephyr RTOS / AUTOSAR Classic Architecture", "OpenSTLinux / Embedded Linux / Android Auto"),
+        ("Reliability & Risk", "Deterministic, Zero-Crash Tolerance", "Complex Network Services, Vulnerable to Freezes / Panics")
     ]
 
     for r_idx, row in enumerate(table_data):
@@ -225,23 +225,23 @@ def create_deck():
     ctf = cbox.text_frame
     ctf.word_wrap = True
     cp = ctf.paragraphs[0]
-    cp.text = "⚠️ NGHỊCH LÝ ĐẶT RA VÀ MỤC TIÊU CỦA ĐỒ ÁN:"
+    cp.text = "⚠️ THE PARADOX & THESIS OBJECTIVE:"
     cp.font.size = Pt(13)
     cp.font.bold = True
     cp.font.color.rgb = ACCENT_RED
     cp.space_after = Pt(4)
 
     cp2 = ctf.add_paragraph()
-    cp2.text = "Nếu chạy chung 1 hệ điều hành Linux duy nhất, sự cố treo ứng dụng giải trí sẽ làm sập luôn hệ thống lái và phanh của xe! Đề tài giải quyết triệt để vấn đề này bằng cách ly phần cứng trên chip đa nhân dị thể STM32MP157."
+    cp2.text = "Running both workloads on a single monolithic Linux OS creates a catastrophic risk: an infotainment freeze can crash steering and braking! This project solves this conflict through absolute hardware domain isolation on the STM32MP157 heterogeneous SoC."
     cp2.font.size = Pt(12)
     cp2.font.color.rgb = TEXT_MUTED
 
     # =========================================================================
-    # SLIDE 4: GIẢI PHÁP ĐA NHÂN DỊ THỂ STM32MP157
+    # SLIDE 4: HETEROGENEOUS SOC SOLUTION
     # =========================================================================
     s4 = prs.slides.add_slide(blank_layout)
     add_bg(s4)
-    add_header(s4, "3. Kiến Trúc Giải Pháp: Nền Tảng Đa Nhân Dị Thể STM32MP157")
+    add_header(s4, "3. Solution Architecture: STM32MP157 Heterogeneous Multi-Core SoC")
 
     # Left: Cortex-M4
     add_card(s4, Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2), border_color=ACCENT_CYAN)
@@ -250,18 +250,18 @@ def create_deck():
     m4_tf.word_wrap = True
 
     p = m4_tf.paragraphs[0]
-    p.text = "🏎️ MIỀN REAL-TIME: ARM CORTEX-M4"
+    p.text = "🏎️ REAL-TIME DOMAIN: ARM CORTEX-M4"
     p.font.size = Pt(16)
     p.font.bold = True
     p.font.color.rgb = ACCENT_CYAN
     p.space_after = Pt(12)
 
     m4_pts = [
-        "Xung nhịp 209 MHz có bộ tính toán dấu phẩy động FPU phần cứng.",
-        "Chạy độc lập từ bộ nhớ SRAM 384 KB nội vi (không phụ thuộc RAM ngoài DDR).",
-        "Cài đặt Zephyr RTOS v4.5.99 theo cấu trúc AUTOSAR Classic.",
-        "Trực tiếp tạo xung PWM 20 kHz (TIM4) và giải mã Encoder đĩa từ (514.8 PPR).",
-        "Vòng lặp PID 10ms tất định, chốt an toàn phanh khẩn cấp ISO 26262."
+        "209 MHz clock with dedicated hardware Single-Precision FPU.",
+        "Executes deterministically from 384 KB internal SRAM (independent of DDR3L).",
+        "Runs Zephyr RTOS v4.5.99 configured under AUTOSAR Classic layered architecture.",
+        "Directly synthesizes 20 kHz PWM (TIM4) and decodes magnetic quadrature encoder (514.8 PPR).",
+        "Executes deterministic 10ms PID loop and ISO 26262 active safety emergency interlocks."
     ]
     for pt in m4_pts:
         p = m4_tf.add_paragraph()
@@ -277,18 +277,18 @@ def create_deck():
     a7_tf.word_wrap = True
 
     p = a7_tf.paragraphs[0]
-    p.text = "🌐 MIỀN GATEWAY: DUAL ARM CORTEX-A7"
+    p.text = "🌐 GATEWAY DOMAIN: DUAL ARM CORTEX-A7"
     p.font.size = Pt(16)
     p.font.bold = True
     p.font.color.rgb = ACCENT_BLUE
     p.space_after = Pt(12)
 
     a7_pts = [
-        "Xung nhịp 800 MHz, 512 MB DDR3L RAM, chạy hệ điều hành OpenSTLinux 5.0.17.",
-        "Quản lý vòng đời khởi động/nạp firmware Cortex-M4 qua 'remoteproc'.",
-        "Giao tiếp liên nhân OpenAMP RPMsg (/dev/ttyRPMSG0) có kiểm tra mã CRC-16.",
-        "Lưu trữ hộp đen Blackbox tai nạn bằng SQLite3 cơ chế WAL an toàn mất điện.",
-        "Cổng viễn thông đám mây MQTT IoT Gateway kết nối Virtual Cockpit."
+        "800 MHz dual cores, 512 MB DDR3L RAM, running OpenSTLinux 5.0.17.",
+        "Manages Cortex-M4 firmware boot and lifecycle via Linux 'remoteproc' framework.",
+        "Inter-processor communication via OpenAMP RPMsg (/dev/ttyRPMSG0) with CRC-16 checks.",
+        "Accident blackbox recorder powered by SQLite3 in crash-safe WAL mode.",
+        "MQTT cloud telematics IoT gateway feeding live telemetry to Digital Virtual Cockpit."
     ]
     for pt in a7_pts:
         p = a7_tf.add_paragraph()
@@ -298,11 +298,11 @@ def create_deck():
         p.space_after = Pt(8)
 
     # =========================================================================
-    # SLIDE 5: KIẾN TRÚC AUTOSAR CLASSIC TRÊN ZEPHYR RTOS
+    # SLIDE 5: AUTOSAR CLASSIC ARCHITECTURE ON ZEPHYR RTOS
     # =========================================================================
     s5 = prs.slides.add_slide(blank_layout)
     add_bg(s5)
-    add_header(s5, "4. Kiến Trúc Phần Mềm Cortex-M4: Chuẩn Hóa AUTOSAR Classic")
+    add_header(s5, "4. Cortex-M4 Software Architecture: AUTOSAR Classic Compliance")
 
     # Layer 1: ASW
     add_card(s5, Inches(0.8), Inches(1.6), Inches(11.733), Inches(1.5), border_color=ACCENT_CYAN)
@@ -310,13 +310,13 @@ def create_deck():
     t1 = l1.text_frame
     t1.word_wrap = True
     p = t1.paragraphs[0]
-    p.text = "APPLICATION SOFTWARE LAYER (ASW) - HOÀN TOÀN ĐỘC LẬP PHẦN CỨNG"
+    p.text = "APPLICATION SOFTWARE LAYER (ASW) - HARDWARE-INDEPENDENT LOGIC"
     p.font.size = Pt(13)
     p.font.bold = True
     p.font.color.rgb = ACCENT_CYAN
     p.space_after = Pt(4)
     p2 = t1.add_paragraph()
-    p2.text = "• Swc_MotorControl: Thuật toán PID 10ms, Anti-Windup Clamping  |  • Swc_SensorManager: Đọc PIR, Gia tốc rung, DHT11  |  • Swc_SafetyManager: Chốt an toàn E-Stop"
+    p2.text = "• Swc_MotorControl: 10ms Discrete PID, Anti-Windup Clamping  |  • Swc_SensorManager: PIR, Vibration Accel, DHT11  |  • Swc_SafetyManager: ISO 26262 E-Stop Interlock"
     p2.font.size = Pt(11)
     p2.font.color.rgb = TEXT_WHITE
 
@@ -326,13 +326,13 @@ def create_deck():
     t2 = l2.text_frame
     t2.word_wrap = True
     p = t2.paragraphs[0]
-    p.text = "RUNTIME ENVIRONMENT (RTE) - TRUNG TÂM ĐIỀU PHỐI VÀ CỔNG TRỪU TƯỢNG"
+    p.text = "RUNTIME ENVIRONMENT (RTE) - ABSTRACTION & SCHEDULING COORDINATOR"
     p.font.size = Pt(13)
     p.font.bold = True
     p.font.color.rgb = ACCENT_GOLD
     p.space_after = Pt(4)
     p2 = t2.add_paragraph()
-    p2.text = "• Rte_Read() / Rte_Write() Ports: Cách ly dữ liệu giữa ASW và BSW  |  • Rte_TimerEvent_10ms(): Lập lịch chu kỳ tất định 100 Hz bằng k_timer + k_sem  |  • Toggle Test Pin PE9 đo Jitter"
+    p2.text = "• Rte_Read() / Rte_Write() Ports: Total data decoupling between ASW and BSW  |  • Rte_TimerEvent_10ms(): 100 Hz deterministic scheduling via k_timer + k_sem  |  • PE9 test pin toggle for jitter profiling"
     p2.font.size = Pt(11)
     p2.font.color.rgb = TEXT_WHITE
 
@@ -348,16 +348,16 @@ def create_deck():
     p.font.color.rgb = ACCENT_BLUE
     p.space_after = Pt(4)
     p2 = t3.add_paragraph()
-    p2.text = "• Mcal_Pwm (TIM4_CH3 20 kHz)  |  • Mcal_Icu (Giải mã Encoder Hall QDEC 514.8 PPR)  |  • Mcal_Dio (GPIO PE7/8/9/10/13)\n• Cdd_L298n (Mạch cầu H phanh tích cực)  |  • Cdd_Ipc (OpenAMP RPMsg, xác thực mã kiểm tra toàn vẹn CRC-16-CCITT)"
+    p2.text = "• Mcal_Pwm (TIM4_CH3 20 kHz carrier)  |  • Mcal_Icu (Hall Encoder QDEC decoding, 514.8 PPR)  |  • Mcal_Dio (GPIO PE7/8/9/10/13)\n• Cdd_L298n (Active-braking dual H-Bridge)  |  • Cdd_Ipc (OpenAMP RPMsg with CRC-16-CCITT packet validation)"
     p2.font.size = Pt(11)
     p2.font.color.rgb = TEXT_MUTED
 
     # =========================================================================
-    # SLIDE 6: NHẬN DẠNG HỆ THỐNG TRÊN MATLAB
+    # SLIDE 6: MATLAB SYSTEM IDENTIFICATION
     # =========================================================================
     s6 = prs.slides.add_slide(blank_layout)
     add_bg(s6)
-    add_header(s6, "5. Nhận Dạng Hệ Thống Động Cơ Thực Nghiệm Trên MATLAB")
+    add_header(s6, "5. Empirical Motor System Identification on MATLAB")
 
     add_card(s6, Inches(0.8), Inches(1.6), Inches(11.733), Inches(5.2))
     b6 = s6.shapes.add_textbox(Inches(1.1), Inches(1.8), Inches(11.133), Inches(4.8))
@@ -365,16 +365,16 @@ def create_deck():
     t6.word_wrap = True
 
     p = t6.paragraphs[0]
-    p.text = "Quy Trình Nhận Dạng Hàm Truyền Thay Vì Thử - Sai (Trial & Error):"
+    p.text = "Rigorous System Identification Replacing Heuristic Trial & Error:"
     p.font.size = Pt(15)
     p.font.bold = True
     p.font.color.rgb = ACCENT_CYAN
     p.space_after = Pt(12)
 
     pts = [
-        "Bước 1: Kích thích bước nhảy mở vòng (Open-Loop Step Test) Duty Cycle 0% -> 60% trong 3.0s.",
-        "Bước 2: Ghi dữ liệu tốc độ phản hồi thực tế vào file CSV qua Cortex-A7 với chu kỳ lấy mẫu Ts = 10ms.",
-        "Bước 3: Nhập dữ liệu vào MATLAB System Identification Toolbox, ước lượng mô hình quán tính bậc 1 có trễ (FOPDT):"
+        "Step 1: Open-loop step excitation injecting Duty Cycle 0% -> 60% for 3.0s.",
+        "Step 2: Stream empirical velocity response to CSV via Cortex-A7 at Ts = 10ms sampling period.",
+        "Step 3: Import into MATLAB System Identification Toolbox, estimating FOPDT dynamic transfer function:"
     ]
     for pt in pts:
         p = t6.add_paragraph()
@@ -385,23 +385,23 @@ def create_deck():
 
     # Formula Box
     p_eq = t6.add_paragraph()
-    p_eq.text = "               G(s) = [ 0.1873 / ( 0.0461 s + 1 ) ] * e^(-0.0400 s)     (ĐỘ KHỚP THỰC TẾ: 80.95%)"
+    p_eq.text = "               G(s) = [ 0.1873 / ( 0.0461 s + 1 ) ] * e^(-0.0400 s)     (BEST FIT ACCURACY: 80.95%)"
     p_eq.font.size = Pt(15)
     p_eq.font.bold = True
     p_eq.font.color.rgb = ACCENT_GOLD
     p_eq.space_after = Pt(12)
 
     p_eval = t6.add_paragraph()
-    p_eval.text = "Ý nghĩa thông số vật lý:\n  - Hệ số khuếch đại tĩnh: K = 0.1873 RPM / %Duty\n  - Hằng số thời gian quán tính cơ học: τ = 46.1 ms (động cơ phản hồi rất nhanh)\n  - Độ trễ khởi động tĩnh do ma sát: θ = 40.0 ms"
+    p_eval.text = "Physical Parameter Interpretation:\n  - Static DC Gain: K = 0.1873 RPM / %Duty\n  - Mechanical Inertial Time Constant: τ = 46.1 ms (rapid motor dynamic response)\n  - Apparent Static Friction Dead Time: θ = 40.0 ms"
     p_eval.font.size = Pt(12)
     p_eval.font.color.rgb = TEXT_MUTED
 
     # =========================================================================
-    # SLIDE 7: THIẾT KẾ PID SỐ RỜI RẠC & ANTI-WINDUP
+    # SLIDE 7: DISCRETE PID CONTROLLER DESIGN & ANTI-WINDUP
     # =========================================================================
     s7 = prs.slides.add_slide(blank_layout)
     add_bg(s7)
-    add_header(s7, "6. Thiết Kế Giải Thuật PID Số Rời Rạc & Anti-Windup Clamping")
+    add_header(s7, "6. Discrete PID Controller Design & Dynamic Anti-Windup Clamping")
 
     add_card(s7, Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2))
     b7a = s7.shapes.add_textbox(Inches(1.1), Inches(1.8), Inches(5.0), Inches(4.7))
@@ -409,20 +409,20 @@ def create_deck():
     t7a.word_wrap = True
 
     p = t7a.paragraphs[0]
-    p.text = "⚙️ THÔNG SỐ VÀ PHƯƠNG TRÌNH PID"
+    p.text = "⚙️ PID PARAMETERS & EQUATIONS"
     p.font.size = Pt(15)
     p.font.bold = True
     p.font.color.rgb = ACCENT_CYAN
     p.space_after = Pt(12)
 
     p_params = t7a.add_paragraph()
-    p_params.text = "Tính toán trên MATLAB Control Toolbox:\n  • Kp = 1.9641 (Tỷ lệ)\n  • Ki = 85.0402 (Tích phân)\n  • Kd = 0.0000 (Triệt tiêu nhiễu vi phân)\n  • Ts = 0.01 s (10 ms)"
+    p_params.text = "Synthesized via MATLAB Control System Toolbox:\n  • Kp = 1.9641 (Proportional Gain)\n  • Ki = 85.0402 (Integral Gain)\n  • Kd = 0.0000 (Derivative filtered out to eliminate noise)\n  • Ts = 0.01 s (10 ms Sample Period)"
     p_params.font.size = Pt(12)
     p_params.font.color.rgb = TEXT_WHITE
     p_params.space_after = Pt(12)
 
     p_code = t7a.add_paragraph()
-    p_code.text = "Phương trình sai phân rời rạc (Swc_MotorControl):\n  e[k] = Target[k] - Actual[k]\n  P[k] = Kp * e[k]\n  I[k] = I[k-1] + Ki * Ts * e[k]\n  u[k] = P[k] + I[k]"
+    p_code.text = "Discrete Difference Equations (Swc_MotorControl.c):\n  e[k] = Target[k] - Actual[k]\n  P[k] = Kp * e[k]\n  I[k] = I[k-1] + Ki * Ts * e[k]\n  u[k] = P[k] + I[k]"
     p_code.font.size = Pt(12)
     p_code.font.color.rgb = ACCENT_GOLD
 
@@ -432,18 +432,18 @@ def create_deck():
     t7b.word_wrap = True
 
     p = t7b.paragraphs[0]
-    p.text = "🛡️ CƠ CHẾ ANTI-WINDUP CLAMPING"
+    p.text = "🛡️ ANTI-WINDUP CLAMPING MECHANISM"
     p.font.size = Pt(15)
     p.font.bold = True
     p.font.color.rgb = ACCENT_GREEN
     p.space_after = Pt(12)
 
     aw_pts = [
-        "Hiện tượng Windup: Khi động cơ bị kẹt hoặc mất nguồn tạm thời, sai số e > 0 kéo dài làm thành phần tích phân I tăng vô hạn, gây giật cục và cháy driver khi có điện lại.",
-        "Giải pháp Anti-Windup Clamping động:",
+        "Windup Phenomenon: Under stall or actuator saturation, persistent positive error causes integrator to surge, triggering severe overshoot and driver stress upon recovery.",
+        "Dynamic Anti-Windup Clamping Implementation:",
         "  Duty[k] = clamp(u[k], 0.0%, 85.0%)",
-        "Khi ngõ ra chạm trần bão hòa (85.0%), khóa tích phân I[k] ngay lập tức, không cho tích lũy thêm.",
-        "Kết quả thực nghiệm: Triệt tiêu hoàn toàn vọt lố (Overshoot 0%), thời gian xác lập cực nhanh ts ≈ 1.2s."
+        "When control output hits upper duty ceiling (85.0%), the integral accumulator I[k] is immediately frozen.",
+        "Experimental Results: Zero overshoot (Overshoot 0.0%), settling time ts ≈ 1.2s with zero steady-state hunting."
     ]
     for pt in aw_pts:
         p = t7b.add_paragraph()
@@ -453,11 +453,11 @@ def create_deck():
         p.space_after = Pt(8)
 
     # =========================================================================
-    # SLIDE 8: HỆ THỐNG AN TOÀN 3 TRỤ CỘT
+    # SLIDE 8: 3-PILLAR ACTIVE SAFETY ARCHITECTURE
     # =========================================================================
     s8 = prs.slides.add_slide(blank_layout)
     add_bg(s8)
-    add_header(s8, "7. Hệ Thống An Toàn Chủ Động 3 Trụ Cột (ISO 26262)")
+    add_header(s8, "7. 3-Pillar Active Safety Architecture (ISO 26262)")
 
     # 3 Cards side by side
     c_w = Inches(3.644)
@@ -467,12 +467,12 @@ def create_deck():
     t8a = b8a.text_frame
     t8a.word_wrap = True
     p = t8a.paragraphs[0]
-    p.text = "🛑 TRỤ CỘT 1: PIR\nVẬT CẢN PHÍA TRƯỚC"
+    p.text = "🛑 PILLAR 1: PIR\nFRONT OBSTACLE HAZARD"
     p.font.size = Pt(14)
     p.font.bold = True
     p.font.color.rgb = ACCENT_RED
     p.space_after = Pt(10)
-    for pt in ["Cảm biến HC-SR501 (PE13).", "Góc quét nón 120°, tầm xa 3-7m.", "Kích hoạt ngắt khẩn cấp tức thì khi có người hoặc chướng ngại vật băng qua.", "Độ trễ phản ứng: < 50 µs tại chu kỳ ngắt."]:
+    for pt in ["HC-SR501 Pyroelectric sensor on PE13.", "120° cone detection angle, 3-7m range.", "Triggers instant emergency stop when pedestrians or obstacles enter hazard zone.", "Actuator cutoff latency: < 50 µs at safety tick."]:
         p = t8a.add_paragraph()
         p.text = "• " + pt
         p.font.size = Pt(11)
@@ -485,12 +485,12 @@ def create_deck():
     t8b = b8b.text_frame
     t8b.word_wrap = True
     p = t8b.paragraphs[0]
-    p.text = "💥 TRỤ CỘT 2: GY-61\nVA CHẠM & RUNG CHẤN"
+    p.text = "💥 PILLAR 2: GY-61\nCRASH & ROLLOVER INTERLOCK"
     p.font.size = Pt(14)
     p.font.bold = True
     p.font.color.rgb = ACCENT_GOLD
     p.space_after = Pt(10)
-    for pt in ["Gia tốc kế 3 trục analog (PF12).", "Tính toán vector gia tốc tổng hợp |a| = √(ax² + ay² + az²).", "Ngưỡng cảnh báo: 2.5g.", "Ngưỡng va chạm E-Stop: 3.5g bảo vệ động cơ và người dùng."]:
+    for pt in ["3-axis analog accelerometer on PF12.", "Computes magnitude vector |a| = √(ax² + ay² + az²).", "Early warning vibration threshold: 2.5g.", "Emergency E-Stop threshold: 3.5g protecting powertrain and chassis mechanics."]:
         p = t8b.add_paragraph()
         p.text = "• " + pt
         p.font.size = Pt(11)
@@ -503,12 +503,12 @@ def create_deck():
     t8c = b8c.text_frame
     t8c.word_wrap = True
     p = t8c.paragraphs[0]
-    p.text = "⚡ TRỤ CỘT 3: WDG\nGIÁM SÁT NHỊP TIM LINUX"
+    p.text = "⚡ PILLAR 3: WDG\nLINUX HEARTBEAT WATCHDOG"
     p.font.size = Pt(14)
     p.font.bold = True
     p.font.color.rgb = ACCENT_BLUE
     p.space_after = Pt(10)
-    for pt in ["Linux A7 phát 'HB' mỗi 500ms.", "M4 đếm timeout: 1.0 giây.", "Nếu Linux bị Kernel Panic hoặc đơ app, M4 tự động ngắt phanh an toàn.", "Ngăn chặn xe lao tự do khi mất kết nối trung tâm."]:
+    for pt in ["Linux A7 daemon transmits 'HB' frame every 500ms.", "Cortex-M4 safety timer timeout: 1.0 s.", "If Linux encounters Kernel Panic or freeze, M4 autonomously executes safe braking.", "Prevents uncontrolled runaway when supervisory telemetry is lost."]:
         p = t8c.add_paragraph()
         p.text = "• " + pt
         p.font.size = Pt(11)
@@ -516,11 +516,11 @@ def create_deck():
         p.space_after = Pt(6)
 
     # =========================================================================
-    # SLIDE 9: TẦNG GATEWAY LINUX VÀ BUỒNG LÁI SỐ
+    # SLIDE 9: LINUX GATEWAY & DIGITAL VIRTUAL COCKPIT
     # =========================================================================
     s9 = prs.slides.add_slide(blank_layout)
     add_bg(s9)
-    add_header(s9, "8. Tầng Gateway Cortex-A7 & Buồng Lái Kỹ Thuật Số (Qt Cockpit)")
+    add_header(s9, "8. Linux Gateway Tier (A7) & Digital Virtual Cockpit (Qt)")
 
     add_card(s9, Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2))
     b9a = s9.shapes.add_textbox(Inches(1.1), Inches(1.8), Inches(5.0), Inches(4.7))
@@ -533,10 +533,10 @@ def create_deck():
     p.font.color.rgb = ACCENT_CYAN
     p.space_after = Pt(10)
     for pt in [
-        "Quản lý kênh /dev/ttyRPMSG0 raw 115200 bps.",
-        "Xác thực mã kiểm tra toàn vẹn CRC-16-CCITT trên từng gói tin viễn thông ($TELEM, $STAT).",
-        "SQLite3 Hộp đen Blackbox (WAL mode): Lưu trữ lịch sử vận hành và vết tai nạn $FAULT vĩnh viễn không sợ mất nguồn.",
-        "Cổng MQTT Telematics IoT: Xuất bản dữ liệu JSON chuẩn lên đám mây."
+        "Manages raw /dev/ttyRPMSG0 character device at 115200 bps.",
+        "Validates CRC-16-CCITT checksum on every telemetry frame ($TELEM, $STAT).",
+        "SQLite3 Accident Blackbox (WAL mode): Non-volatile persistence of events and $FAULT dumps.",
+        "MQTT Telematics IoT Gateway: Streams standardized JSON payloads to cloud platforms."
     ]:
         p = t9a.add_paragraph()
         p.text = "• " + pt
@@ -555,11 +555,11 @@ def create_deck():
     p.font.color.rgb = ACCENT_GOLD
     p.space_after = Pt(10)
     for pt in [
-        "Giao diện thể thao thiết kế bằng PyQt5 + pyqtgraph.",
-        "Cụm 2 đồng hồ kim tròn quét mượt mà ở tần số cao 40 FPS (Speedometer & Power Gauge).",
-        "Khung xe 3D top-down với sóng radar hồng ngoại quét vật cản đổi màu đỏ khi có sự cố.",
-        "Con lắc G-Meter trực quan hóa rung chấn gia tốc.",
-        "Biểu đồ bám PID thời gian thực 100 Hz, dải đèn cảnh báo chuẩn quốc tế ISO 2575."
+        "Automotive sports cluster developed with PyQt5 and hardware-accelerated pyqtgraph.",
+        "Dual analog gauge cluster sweeping smoothly at 40 FPS (Speedometer & Power Gauge).",
+        "Top-down 3D vehicle silhouette with infrared radar proximity waves turning red upon alerts.",
+        "Dynamic G-Meter visualizing lateral and longitudinal acceleration transients.",
+        "Real-time 100 Hz closed-loop PID tracking plot, ISO 2575 standard automotive telltales."
     ]:
         p = t9b.add_paragraph()
         p.text = "• " + pt
@@ -568,11 +568,11 @@ def create_deck():
         p.space_after = Pt(8)
 
     # =========================================================================
-    # SLIDE 10: KẾT QUẢ ĐO KIỂM NFR-1 (JITTER LOGIC ANALYZER)
+    # SLIDE 10: NFR-1 VERIFICATION (JITTER LOGIC ANALYZER)
     # =========================================================================
     s10 = prs.slides.add_slide(blank_layout)
     add_bg(s10)
-    add_header(s10, "9. Kết Quả Đo Kiểm NFR-1: Định Lượng Jitter Chu Kỳ 10ms")
+    add_header(s10, "9. NFR-1 Verification: 10ms Control Loop Jitter Quantification")
 
     # Left: Image
     img_jitter = "docs/assets/week11/jitter_measurement_pe9.png"
@@ -586,20 +586,20 @@ def create_deck():
     t10.word_wrap = True
 
     p = t10.paragraphs[0]
-    p.text = "📊 SỐ LIỆU ĐO THỰC TẾ (SALEAE LOGIC 2)"
+    p.text = "📊 EMPIRICAL DATA (SALEAE LOGIC 2)"
     p.font.size = Pt(13)
     p.font.bold = True
     p.font.color.rgb = ACCENT_CYAN
     p.space_after = Pt(10)
 
     j_data = [
-        "Kênh đo: Channel 0 (PE9 / Arduino D6)",
-        "Nửa chu kỳ danh định: 10.000000 ms",
-        "Nửa chu kỳ đo được: 10.006375 ms",
+        "Measurement probe: Channel 0 (PE9 / Arduino D6)",
+        "Nominal half-period: 10.000000 ms",
+        "Measured half-period: 10.006375 ms",
         "HARDWARE JITTER (ΔT): 6.375 µs",
-        "Chu kỳ toàn phần (Lên+Xuống): 20.01275 ms",
-        "Tần số đo được: 49.986 Hz (Sai số -0.028%)",
-        "Tỷ lệ chiếm chu kỳ (Duty): 50.0% đối xứng"
+        "Full cycle period (High+Low): 20.01275 ms",
+        "Measured frequency: 49.986 Hz (Error -0.028%)",
+        "Pulse symmetry (Duty cycle): 50.0% symmetrical"
     ]
     for d in j_data:
         p = t10.add_paragraph()
@@ -609,17 +609,17 @@ def create_deck():
         p.space_after = Pt(5)
 
     p_eval = t10.add_paragraph()
-    p_eval.text = "\n🏆 ĐÁNH GIÁ CHUẨN NFR-1:\nĐặc tả yêu cầu Jitter ≤ 50 µs. Kết quả thực tế 6.375 µs -> VƯỢT CHUẨN XUẤT SẮC 7.84 LẦN (Dư 87.25% biên độ an toàn). Khẳng định tính tất định tuyệt đối của Zephyr RTOS!"
+    p_eval.text = "\n🏆 NFR-1 EVALUATION:\nSpecification requires Jitter ≤ 50 µs. Measured result is 6.375 µs -> EXCEEDS SPECIFICATION BY 7.84x (87.25% safety margin). Confirms absolute hard real-time determinism of Zephyr RTOS!"
     p_eval.font.size = Pt(11)
     p_eval.font.bold = True
     p_eval.font.color.rgb = ACCENT_GREEN
 
     # =========================================================================
-    # SLIDE 11: KẾT QUẢ ĐO KIỂM NFR-2 (PWM & ĐỘ TRỄ E-STOP)
+    # SLIDE 11: NFR-2 VERIFICATION (PWM & E-STOP LATENCY)
     # =========================================================================
     s11 = prs.slides.add_slide(blank_layout)
     add_bg(s11)
-    add_header(s11, "10. Kết Quả Đo Kiểm NFR-2: Xác Thực PWM 20kHz & Độ Trễ E-Stop")
+    add_header(s11, "10. NFR-2 Verification: 20kHz PWM & E-Stop Braking Latency")
 
     # Left: Image
     img_pwm = "docs/assets/week11/estop_cutoff_zoom.png"
@@ -633,41 +633,41 @@ def create_deck():
     t11.word_wrap = True
 
     p = t11.paragraphs[0]
-    p.text = "⚡ ĐO ĐẠC ĐỘ TRỄ NGẮT PHANH"
+    p.text = "⚡ BRAKE CUTOFF LATENCY PROFILING"
     p.font.size = Pt(13)
     p.font.bold = True
     p.font.color.rgb = ACCENT_RED
     p.space_after = Pt(10)
 
     p_data = [
-        "Tần số sóng mang PWM: 20.000 kHz",
-        "Chu kỳ xung PWM: 50.0 µs",
-        "Độ rộng mức cao: 42.5 µs (Duty 85.0%)",
-        "Khớp 100% trần Anti-Windup ASW!",
-        "PIR sườn lên báo nguy: t = 1.9011 s",
-        "Chu kỳ an toàn bắt đầu: t = 1.9178 s",
-        "Thời gian ngắt PWM về 0V: < 0.05 ms",
-        "Tổng độ trễ phản ứng: 16.7 ms"
+        "PWM carrier frequency: 20.000 kHz",
+        "PWM period: 50.0 µs",
+        "Active high pulse width: 42.5 µs (Duty 85.0%)",
+        "Exact 100% match with ASW Anti-Windup clamp!",
+        "PIR rising edge hazard assertion: t = 1.9011 s",
+        "Safety execution cycle trigger: t = 1.9178 s",
+        "PWM output suppression to 0V: < 0.05 ms",
+        "Total end-to-end response time: 16.7 ms"
     ]
     for d in p_data:
         p = t11.add_paragraph()
         p.text = "• " + d
         p.font.size = Pt(11)
-        p.font.color.rgb = ACCENT_GOLD if "ngắt PWM" in d else TEXT_WHITE
+        p.font.color.rgb = ACCENT_GOLD if "suppression" in d else TEXT_WHITE
         p.space_after = Pt(4)
 
     p_eval2 = t11.add_paragraph()
-    p_eval2.text = "\n🏆 ĐÁNH GIÁ CHUẨN NFR-2:\nĐặc tả yêu cầu thời gian ngắt phanh < 5.0 ms. Kết quả thực tế ngắt ngay trong cùng chu kỳ (< 50 µs) -> ĐẠT XUẤT SẮC!"
+    p_eval2.text = "\n🏆 NFR-2 EVALUATION:\nSpecification requires brake cutoff latency < 5.0 ms. Physical measurement demonstrates immediate cycle suppression (< 50 µs) -> EXCEEDS REQUIREMENT!"
     p_eval2.font.size = Pt(11)
     p_eval2.font.bold = True
     p_eval2.font.color.rgb = ACCENT_GREEN
 
     # =========================================================================
-    # SLIDE 12: KẾT QUẢ ĐO KIỂM NFR-3 (BENCHMARK RPMSG IPC)
+    # SLIDE 12: NFR-3 VERIFICATION (RPMSG IPC BENCHMARK)
     # =========================================================================
     s12 = prs.slides.add_slide(blank_layout)
     add_bg(s12)
-    add_header(s12, "11. Kết Quả Đo Kiểm NFR-3: Benchmark Độ Trễ Khứ Hồi RPMsg IPC")
+    add_header(s12, "11. NFR-3 Verification: RPMsg IPC Round-Trip Latency Benchmark")
 
     img_rpmsg = "docs/assets/week12/rpmsg_roundtrip_latency.jpg"
     if os.path.exists(img_rpmsg):
@@ -679,39 +679,39 @@ def create_deck():
     t12.word_wrap = True
 
     p = t12.paragraphs[0]
-    p.text = "🔄 BENCHMARK 100 GÓI KHỨ HỒI (A7 ↔ M4)"
+    p.text = "🔄 100-PACKET ROUND-TRIP BENCHMARK (A7 ↔ M4)"
     p.font.size = Pt(13)
     p.font.bold = True
     p.font.color.rgb = ACCENT_BLUE
     p.space_after = Pt(10)
 
     ipc_data = [
-        "Tổng số gói truyền: 100 / 100 mẫu",
-        "Tỷ lệ thành công: 100.0% (0% packet drop)",
-        "ĐỘ TRỄ TRUNG BÌNH (t_avg): 1.999 ms",
-        "Độ trễ cực tiểu (t_min): 1.727 ms",
-        "Độ trễ cực đại (t_max): 2.640 ms",
-        "Độ lệch chuẩn Jitter (σ): 0.129 ms (129 µs)"
+        "Total benchmark frames: 100 / 100 samples",
+        "Packet delivery rate: 100.0% (0% packet drop)",
+        "AVERAGE ROUND-TRIP TIME (t_avg): 1.999 ms",
+        "Minimum RTT (t_min): 1.727 ms",
+        "Maximum RTT (t_max): 2.640 ms",
+        "Jitter Standard Deviation (σ): 0.129 ms (129 µs)"
     ]
     for d in ipc_data:
         p = t12.add_paragraph()
         p.text = "• " + d
         p.font.size = Pt(11)
-        p.font.color.rgb = ACCENT_GOLD if "TRUNG BÌNH" in d else TEXT_WHITE
+        p.font.color.rgb = ACCENT_GOLD if "ROUND-TRIP TIME" in d else TEXT_WHITE
         p.space_after = Pt(5)
 
     p_eval3 = t12.add_paragraph()
-    p_eval3.text = "\n🏆 ĐÁNH GIÁ CHUẨN NFR-3:\nMục tiêu thiết kế yêu cầu độ trễ < 5.0 ms. Kết quả thực nghiệm đạt 1.999 ms (< 2.0 ms) với độ lệch chuẩn chỉ 129 µs -> ĐẠT XUẤT SẮC!"
+    p_eval3.text = "\n🏆 NFR-3 EVALUATION:\nDesign specification targets RTT < 5.0 ms. Experimental benchmark achieves 1.999 ms (< 2.0 ms) with a tight standard deviation of 129 µs -> EXCELLENT RATING!"
     p_eval3.font.size = Pt(11)
     p_eval3.font.bold = True
     p_eval3.font.color.rgb = ACCENT_GREEN
 
     # =========================================================================
-    # SLIDE 13: KẾT QUẢ ĐO KIỂM NFR-4 & NFR-5
+    # SLIDE 13: NFR-4 & NFR-5 VERIFICATION
     # =========================================================================
     s13 = prs.slides.add_slide(blank_layout)
     add_bg(s13)
-    add_header(s13, "12. Kiểm Chứng Tính Độc Lập Khi Crash (NFR-4) & Bám PID (NFR-5)")
+    add_header(s13, "12. Verification: Crash Independence (NFR-4) & PID Tracking (NFR-5)")
 
     # Left: NFR-4
     add_card(s13, Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2), border_color=ACCENT_GREEN)
@@ -720,18 +720,18 @@ def create_deck():
     t13a.word_wrap = True
 
     p = t13a.paragraphs[0]
-    p.text = "🛡️ NFR-4: TÍNH ĐỘC LẬP KHI CRASH"
+    p.text = "🛡️ NFR-4: INDEPENDENCE DURING CRASH"
     p.font.size = Pt(15)
     p.font.bold = True
     p.font.color.rgb = ACCENT_GREEN
     p.space_after = Pt(10)
 
     nfr4_pts = [
-        "Thử nghiệm: Đang chạy motor ở 10 RPM, cố ý ngắt cưỡng bức Dashboard (Ctrl + C) làm đứt toàn bộ kết nối HMI và tiến trình Linux.",
-        "Hiện tượng thực tế:",
-        "  - Cortex-M4 vẫn chạy 100%, motor quay mượt mà, vòng PID 10ms không bị gián đoạn.",
-        "  - Quơ tay trước cảm biến PIR: M4 tự động ngắt phanh dừng xe an toàn ngay lập tức!",
-        "Kết luận: Phân vùng thời gian thực M4 hoàn toàn độc lập, không bị kéo sập theo Linux."
+        "Test Scenario: With motor running at 10 RPM, abruptly terminated Dashboard process (Ctrl+C / SIGKILL), severing HMI and Linux IPC.",
+        "Empirical Observations:",
+        "  - Cortex-M4 maintains 100% continuous execution, motor spins smoothly, 10ms PID loop uninterrupted.",
+        "  - Triggering PIR sensor: M4 autonomously executes emergency stop and locks brake instantly!",
+        "Conclusion: Real-time M4 partition is fully decoupled and resilient against Linux user-space crashes."
     ]
     for pt in nfr4_pts:
         p = t13a.add_paragraph()
@@ -747,18 +747,18 @@ def create_deck():
     t13b.word_wrap = True
 
     p = t13b.paragraphs[0]
-    p.text = "🎯 NFR-5: ĐỘ CHÍNH XÁC BÁM PID"
+    p.text = "🎯 NFR-5: PID TRACKING ACCURACY"
     p.font.size = Pt(15)
     p.font.bold = True
     p.font.color.rgb = ACCENT_CYAN
     p.space_after = Pt(10)
 
     nfr5_pts = [
-        "Kiểm tra bám vận tốc tại các điểm đặt: 8 RPM, 10 RPM, 12 RPM, 15 RPM.",
-        "Sai số xác lập thực tế: ess = 0.00 RPM (Đặc tả NFR-5 yêu cầu ess ≤ 2.0 RPM).",
-        "Độ vọt lố (Overshoot): 0% (nhờ thuật toán Anti-Windup Clamping).",
-        "Thời gian xác lập: ts ≈ 1.2s.",
-        "Toàn vẹn truyền thông: 3,318 / 3,318 gói tin đạt chuẩn kiểm tra CRC-16 (100.0% không lỗi bit)."
+        "Evaluated velocity tracking across operating setpoints: 8 RPM, 10 RPM, 12 RPM, 15 RPM.",
+        "Measured steady-state error: ess = 0.00 RPM (NFR-5 specification requires ess ≤ 2.0 RPM).",
+        "Overshoot: 0.0% (achieved via Anti-Windup Clamping integration).",
+        "Settling time: ts ≈ 1.2s.",
+        "Communication integrity: 3,318 / 3,318 frames verified via CRC-16 (100.0% error-free)."
     ]
     for pt in nfr5_pts:
         p = t13b.add_paragraph()
@@ -772,7 +772,7 @@ def create_deck():
     # =========================================================================
     s14 = prs.slides.add_slide(blank_layout)
     add_bg(s14)
-    add_header(s14, "13. Bảng Tổng Hợp Nghiệm Thu Toàn Diện (Master Scorecard)")
+    add_header(s14, "13. Comprehensive Acceptance Scorecard (Master Acceptance Matrix)")
 
     add_card(s14, Inches(0.8), Inches(1.6), Inches(11.733), Inches(5.2))
     
@@ -786,13 +786,13 @@ def create_deck():
     t14.columns[3].width = Inches(1.833)
 
     score_data = [
-        ("Tiêu Chuẩn", "Chỉ Tiêu Kỹ Thuật Đặc Tả", "Kết Quả Thực Nghiệm Trên Phần Cứng", "Đánh Giá"),
-        ("NFR-1", "Jitter chu kỳ PID Ts = 10ms ≤ 50 µs", "ΔT = 6.375 µs (Logic Analyzer trên PE9)", "VƯỢT 7.8 LẦN"),
-        ("NFR-2", "Độ trễ ngắt E-Stop < 5.0 ms", "Ngắt PWM < 0.05 ms tại chu kỳ an toàn", "ĐẠT XUẤT SẮC"),
-        ("NFR-3", "Độ trễ khứ hồi RPMsg IPC < 5.0 ms", "t_avg = 1.999 ms, σ = 0.129 ms (100/100)", "ĐẠT XUẤT SẮC"),
-        ("NFR-4", "Tính độc lập khi Linux/HMI crash", "M4 tự chạy PID và tự phanh khi có vật cản", "ĐẠT TUYỆT ĐỐI"),
-        ("NFR-5", "Sai số bám PID ess ≤ 2.0 RPM", "ess = 0.00 RPM, Overshoot 0%", "ĐẠT 100%"),
-        ("FR-M & FR-A", "15 Yêu cầu chức năng trên M4 & A7", "100% các chức năng chạy ổn định phần cứng", "HOÀN THÀNH")
+        ("Standard / Metric", "Specification Requirement", "Experimental Hardware Result", "Evaluation"),
+        ("NFR-1", "PID sample period Ts = 10ms Jitter ≤ 50 µs", "ΔT = 6.375 µs (Logic Analyzer on PE9)", "EXCEEDS 7.8x"),
+        ("NFR-2", "E-Stop actuator cutoff latency < 5.0 ms", "PWM cut < 0.05 ms at safety tick, 16.7 ms total", "EXCELLENT"),
+        ("NFR-3", "RPMsg IPC round-trip latency < 5.0 ms", "t_avg = 1.999 ms, σ = 0.129 ms (100/100)", "EXCELLENT"),
+        ("NFR-4", "Independence during Linux / HMI crash", "M4 executes PID autonomously & triggers PIR brake", "100% COMPLIANT"),
+        ("NFR-5", "PID steady-state error ess ≤ 2.0 RPM", "ess = 0.00 RPM, Overshoot 0%", "100% COMPLIANT"),
+        ("FR-M & FR-A", "15 Functional Requirements across M4 & A7", "100% features verified operational on hardware", "COMPLETE")
     ]
 
     for r_idx, row in enumerate(score_data):
@@ -817,11 +817,11 @@ def create_deck():
                     p.font.color.rgb = TEXT_WHITE
 
     # =========================================================================
-    # SLIDE 15: VIDEO THỰC NGHIỆM DEMO
+    # SLIDE 15: HARDWARE DEMONSTRATION VIDEO
     # =========================================================================
     s_v = prs.slides.add_slide(blank_layout)
     add_bg(s_v)
-    add_header(s_v, "14. Video Thực Nghiệm Demo Toàn Diện Phần Cứng (Hardware Demo)")
+    add_header(s_v, "14. Physical Hardware Demonstration & Verification Video")
 
     # Left: Video Info Card
     add_card(s_v, Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2), border_color=ACCENT_CYAN)
@@ -830,28 +830,28 @@ def create_deck():
     tv_left.word_wrap = True
 
     p = tv_left.paragraphs[0]
-    p.text = "🎥 VIDEO VẬN HÀNH THỰC TẾ"
+    p.text = "🎥 EMPIRICAL OPERATION VIDEO"
     p.font.size = Pt(15)
     p.font.bold = True
     p.font.color.rgb = ACCENT_CYAN
     p.space_after = Pt(12)
 
     v_meta = [
-        "File: docs/video_demo/demo.mp4",
-        "Định dạng: MP4 Video (H.264)",
-        "Dung lượng: ~29.6 MB",
-        "Độ phân giải: Full HD 1080p",
-        "Trạng thái: Đã sẵn sàng trình chiếu trực tiếp"
+        "Local File: docs/video_demo/demo.mp4",
+        "Online Mirror: Google Drive Video Link",
+        "Format: MP4 Video (H.264 High Profile)",
+        "File Size: ~29.6 MB | Resolution: Full HD 1080p",
+        "Status: Verified and ready for live playback"
     ]
     for m in v_meta:
         p = tv_left.add_paragraph()
         p.text = "• " + m
         p.font.size = Pt(12)
-        p.font.color.rgb = TEXT_WHITE if "File" in m else TEXT_MUTED
+        p.font.color.rgb = TEXT_WHITE if ("File" in m or "Mirror" in m) else TEXT_MUTED
         p.space_after = Pt(6)
 
     p_badge = tv_left.add_paragraph()
-    p_badge.text = "\n▶️ SẴN SÀNG TRÌNH DIỄN MINH CHỨNG TRƯỚC HỘI ĐỒNG GIÁM KHẢO"
+    p_badge.text = "\n▶️ READY FOR LIVE DEMONSTRATION BEFORE THE EVALUATION COMMITTEE"
     p_badge.font.size = Pt(12)
     p_badge.font.bold = True
     p_badge.font.color.rgb = ACCENT_GOLD
@@ -863,17 +863,17 @@ def create_deck():
     tv_right.word_wrap = True
 
     p = tv_right.paragraphs[0]
-    p.text = "📋 4 KỊCH BẢN THỰC NGHIỆM GHI HÌNH"
+    p.text = "📋 4 KEY RECORDED TEST SCENARIOS"
     p.font.size = Pt(15)
     p.font.bold = True
     p.font.color.rgb = ACCENT_GREEN
     p.space_after = Pt(12)
 
     scenarios = [
-        ("1. Khởi động & Nạp Firmware:", "Cortex-A7 nạp M4 qua remoteproc, thiết lập kênh RPMsg kết nối Virtual Cockpit."),
-        ("2. Bám Vận Tốc PID 10ms (NFR-5):", "Cần số chuyển D (PID), đổi tốc độ 8, 10, 12 RPM, kim quét mượt mà, sai số ess = 0.00 RPM."),
-        ("3. Phanh Khẩn Cấp PIR (NFR-2):", "Đưa tay trước xe -> Radar đổi màu đỏ, phanh ngắt điện PWM tức thì (< 50 µs)."),
-        ("4. Kiểm Chứng Độc Lập Khi Crash (NFR-4):", "Ngắt HMI đột ngột, M4 vẫn chạy PID độc lập và tự phanh khi có vật cản.")
+        ("1. System Boot & Firmware Bring-Up:", "Cortex-A7 loads M4 via remoteproc, brings up RPMsg channel, connects Virtual Cockpit."),
+        ("2. 10ms PID Velocity Tracking (NFR-5):", "PRND shifter engages D (PID), velocity steps to 8, 10, 12 RPM, smooth 40 FPS sweep, ess = 0.00 RPM."),
+        ("3. PIR Emergency Stop Interlock (NFR-2):", "Hand placed in front of vehicle -> Radar turns red, PWM drive suppressed instantly (< 50 µs)."),
+        ("4. Fail-Safe Independence on Crash (NFR-4):", "Dashboard severed abruptly, M4 maintains closed-loop PID and executes autonomous safety stop.")
     ]
     for s_title, s_desc in scenarios:
         p1 = tv_right.add_paragraph()
@@ -888,11 +888,11 @@ def create_deck():
         p2.space_after = Pt(4)
 
     # =========================================================================
-    # SLIDE 16: KẾT LUẬN & ĐÓNG GÓP
+    # SLIDE 16: CONCLUSION & CONTRIBUTIONS
     # =========================================================================
     s15 = prs.slides.add_slide(blank_layout)
     add_bg(s15)
-    add_header(s15, "15. Kết Luận & Những Đóng Góp Kỹ Thuật Nổi Bật Của Đề Tài")
+    add_header(s15, "15. Conclusion & Key Technical Contributions")
 
     add_card(s15, Inches(0.8), Inches(1.6), Inches(11.733), Inches(5.2))
     b15 = s15.shapes.add_textbox(Inches(1.1), Inches(1.8), Inches(11.133), Inches(4.8))
@@ -900,17 +900,17 @@ def create_deck():
     t15.word_wrap = True
 
     p = t15.paragraphs[0]
-    p.text = "4 ĐÓNG GÓP KỸ THUẬT CỐT LÕI:"
+    p.text = "4 CORE TECHNICAL CONTRIBUTIONS:"
     p.font.size = Pt(15)
     p.font.bold = True
     p.font.color.rgb = ACCENT_CYAN
     p.space_after = Pt(12)
 
     contributions = [
-        ("1. Làm chủ kiến trúc vi xử lý đa nhân dị thể (Heterogeneous SoC STM32MP157):", "Tích hợp thành công hai miền tính toán đối lập (Hard Real-Time M4 và Smart Linux A7) trên cùng một đế bán dẫn với tính độc lập hoàn hảo."),
-        ("2. Hiện thực hóa chuẩn công nghiệp ô tô AUTOSAR Classic trên Zephyr RTOS:", "Xây dựng phân tầng ASW -> RTE -> BSW chuẩn mực, giúp mã nguồn thuật toán hoàn toàn độc lập phần cứng và có khả năng tái sử dụng tối đa."),
-        ("3. Quy trình thiết kế điều khiển từ Nhận Dạng Toán Học đến Thực Tế:", "Thu thập dữ liệu thực tế bước nhảy và nhận dạng mô hình trên MATLAB đạt độ khớp 80.95%, giúp bộ điều khiển PID đạt sai số bám lý tưởng 0.00 RPM."),
-        ("4. Phương pháp đo kiểm định lượng cấp microsecond chuyên nghiệp:", "Sử dụng Logic Analyzer chuyên dụng chứng minh Jitter chỉ 6.375 µs và độ trễ liên nhân IPC chỉ 1.999 ms, mang lại cơ sở khoa học vững chắc cho đề tài.")
+        ("1. Mastery of Heterogeneous SoC Architecture (STM32MP157):", "Successfully unified two opposing computing paradigms (Hard Real-Time M4 and Rich Linux A7) on a single silicon die with absolute domain isolation."),
+        ("2. Realization of AUTOSAR Classic Architecture on Zephyr RTOS:", "Built standardized ASW -> RTE -> BSW layered separation, making control algorithms 100% hardware-agnostic and highly reusable."),
+        ("3. Model-Based Control Design from Mathematical ID to Physical Kit:", "Executed empirical step-response system identification on MATLAB achieving 80.95% fit, enabling zero steady-state error (0.00 RPM)."),
+        ("4. Professional Microsecond-Level Quantitative Verification:", "Employed industrial Logic Analyzers to prove loop jitter of 6.375 µs and IPC latency of 1.999 ms, providing robust empirical proof.")
     ]
 
     for title, desc in contributions:
@@ -926,7 +926,7 @@ def create_deck():
         p2.space_after = Pt(8)
 
     # =========================================================================
-    # SLIDE 16: HƯỚNG PHÁT TRIỂN & Q&A
+    # SLIDE 17: FUTURE WORK & Q&A
     # =========================================================================
     s16 = prs.slides.add_slide(blank_layout)
     add_bg(s16)
@@ -938,16 +938,16 @@ def create_deck():
     t16.word_wrap = True
 
     p = t16.paragraphs[0]
-    p.text = "HƯỚNG PHÁT TRIỂN TIẾP THEO (FUTURE WORK)"
+    p.text = "FUTURE WORK & TECHNICAL ROADMAP"
     p.font.size = Pt(15)
     p.font.bold = True
     p.font.color.rgb = ACCENT_CYAN
     p.space_after = Pt(10)
 
     fw = [
-        "Mở rộng giao tiếp mạng vật lý ô tô: Tích hợp phần cứng CAN FD và Automotive Ethernet (100BASE-T1).",
-        "Nâng cấp giải thuật điều khiển động cơ: Triển khai điều khiển vector tựa từ thông (FOC) cho động cơ BLDC/PMSM.",
-        "Cập nhật phần mềm không dây an toàn (OTA): Xây dựng tính năng FOTA có chữ ký số cho Cortex-M4 qua Linux Gateway."
+        "Automotive Physical Bus Expansion: Integrate hardware CAN FD and Automotive Ethernet (100BASE-T1).",
+        "Advanced Motor Control Algorithms: Deploy Field-Oriented Control (FOC) for 3-phase BLDC/PMSM EV traction drives.",
+        "Secure Over-The-Air (FOTA) Updates: Implement cryptographically signed firmware updates for Cortex-M4 via Linux Gateway."
     ]
     for w in fw:
         p = t16.add_paragraph()
@@ -963,7 +963,7 @@ def create_deck():
     p_div.space_after = Pt(10)
 
     p_end = t16.add_paragraph()
-    p_end.text = "XIN TRÂN TRỌNG CẢM ƠN QUÝ THẦY CÔ TRONG HỘI ĐỒNG GIÁM KHẢO!"
+    p_end.text = "THANK YOU FOR YOUR ATTENTION!"
     p_end.font.size = Pt(16)
     p_end.font.bold = True
     p_end.font.color.rgb = ACCENT_GOLD
@@ -971,7 +971,7 @@ def create_deck():
     p_end.space_after = Pt(6)
 
     p_qa = t16.add_paragraph()
-    p_qa.text = "PHIÊN HỎI & ĐÁP (Q & A)"
+    p_qa.text = "QUESTIONS & ANSWERS (Q & A)"
     p_qa.font.size = Pt(13)
     p_qa.font.bold = True
     p_qa.font.color.rgb = TEXT_WHITE

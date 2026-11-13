@@ -1,43 +1,43 @@
-# Báo Cáo Tiến Độ Tuần 10: Phát Triển Giao Diện Digital Virtual Cockpit & Real-Time Dashboard Bằng Qt Trên STM32MP157
+# Week 10 Progress Report: Digital Virtual Cockpit & Real-Time Dashboard Development using Qt on STM32MP157
 
-- **Dự án:** Automotive Domain Gateway & Real-Time Motor Controller (STM32MP157D-DK1)
-- **Kiến trúc phần mềm:** AUTOSAR Classic (Cortex-M4 Zephyr RTOS) kết hợp OpenSTLinux Gateway (Cortex-A7) & Qt Digital Cockpit
-- **Thời gian thực hiện:** Tuần 10 (Milestone 10)
-- **Người thực hiện:** Kỹ sư nhúng & Trợ lý Antigravity
-- **Trạng thái:** **Hoàn thành 100% Mục Tiêu Tuần 10 (Milestone 10 Completed & 100% Hardware/Dashboard Verified)**
-
----
-
-## 1. Tổng Quan Mục Tiêu Tuần 10 (Week 10 Objectives)
-
-Theo tài liệu đặc tả kỹ thuật dự án [`requirement/requirements_stm32mp157_motor_gateway.md`](file:///c:/Study/Personal_project/stm32mp157d-dk1/requirement/requirements_stm32mp157_motor_gateway.md) (yêu cầu chức năng **FR-A5** và phi chức năng **NFR-5**):
-> **"Tuần 10: Xây dựng giao diện Dashboard thời gian thực bằng Qt trên Cortex-A7 (OpenSTLinux) / Host Telematics Cockpit"**
-
-Các mục tiêu kỹ thuật trọng tâm đã hoàn thành:
-1. **Thiết kế giao diện Digital Virtual Cockpit phong cách ô tô thể thao/xe điện hiện đại:**
-   - Cặp đồng hồ kim tròn kỹ thuật số (**Speedometer** $0 \div 30\text{ RPM}$ & **Power Gauge** $0 \div 100\%$ PWM Duty).
-   - Kim đo thể thao quét mượt mà ở tần số cao $40\text{ FPS}$ với thuật toán nội suy làm mịn chuyển động.
-   - Khấc chỉ vận tốc mục tiêu (Cruise Control Target Notch) màu đỏ trên vành đồng hồ tốc độ.
-2. **Khung gầm ô tô ảo & Hệ thống Radar an toàn chủ động (Vehicle Chassis & Active Radar):**
-   - Đồ họa mô hình xe nhìn từ trên xuống (Top-down Wireframe).
-   - Radar sóng xung tỏa trước đầu xe: Trạng thái bình thường phát sóng xanh lục êm dịu, khi cảm biến PIR phát hiện vật cản lập tức **nhấp nháy đỏ chói cảnh báo va chạm**.
-   - Cầu trục dẫn động phía sau xoay động bộ theo tốc độ quay thực tế của motor.
-   - Con lắc G-Meter trọng tâm hiển thị trực quan vector gia tốc rung chấn từ cảm biến GY-61 (ngưỡng cảnh báo va chạm $2.5g$).
-3. **Dải đèn cảnh báo Taplo chuẩn quốc tế ISO 2575 (Tell-Tale Warning Bar):**
-   - Đèn phanh an toàn `🛑 BRAKE / E-STOP ACTIVE` $\longleftrightarrow$ `🟢 SYSTEM READY`.
-   - Đèn cảnh báo vật cản `🚶 OBSTACLE`, đèn va chạm chấn động `💥 CRASH`.
-   - Đèn nhịp tim điều khiển `⚡ WDG ALIVE`, thông số môi trường buồng lái `🌡️ TEMP` ($26.2^\circ\text{C}$), `💧 HUM` ($37.0\%$).
-4. **Cần số điện tử chuẩn PRND (Electronic Transmission Shifter):**
-   - Chế độ `[ P ] PARK / STOP`: Dừng xe an toàn, cắt xung ngõ ra về $0\%$.
-   - Chế độ `[ D ] DRIVE / CLOSED-LOOP PID`: Tự động bám vận tốc vòng kín $10\text{ ms}$ theo thuật toán PID số xuất từ MATLAB.
-   - Chế độ `[ S ] SPORT / STEP TEST`: Chạy mở vòng kích thích bước nhảy phục vụ nhận dạng hệ thống.
-5. **Đồ thị sóng động học thời gian thực (Telematics Dynamics Waveform):**
-   - Vẽ trực tiếp đường Target Setpoint (đỏ nét đứt) vs Measured Motor Speed (xanh ngọc nét liền) ở tần số $100\text{ Hz}$.
-   - Tự động đo đạc và đánh giá sai số xác lập: $e_{ss} = |\text{Target} - \text{Actual}| \le 2.0\text{ RPM}$ đạt chuẩn **NFR-5**.
+- **Project:** Automotive Domain Gateway & Real-Time Motor Controller (STM32MP157D-DK1)
+- **Software Architecture:** AUTOSAR Classic (Cortex-M4 Zephyr RTOS) coupled with OpenSTLinux Gateway (Cortex-A7) & Qt Digital Cockpit
+- **Execution Period:** Week 10 (Milestone 10)
+- **Author:** Embedded Engineer & Antigravity Assistant
+- **Status:** **100% Milestone 10 Objectives Completed (Milestone 10 Completed & 100% Hardware/Dashboard Verified)**
 
 ---
 
-## 2. Kiến Trúc Phân Tầng Giao Tiếp Hệ Thống
+## 1. Week 10 Objectives Overview
+
+According to project technical specification [`requirement/requirements_stm32mp157_motor_gateway.md`](../requirement/requirements_stm32mp157_motor_gateway.md) (functional requirement **FR-A5** and non-functional requirement **NFR-5**):
+> **"Week 10: Build real-time Dashboard interface using Qt on Cortex-A7 (OpenSTLinux) / Host Telematics Cockpit"**
+
+Key technical objectives completed:
+1. **Design modern electric vehicle / sports car style Digital Virtual Cockpit interface:**
+   - Dual circular digital gauges (**Speedometer** $0 \div 30\text{ RPM}$ & **Power Gauge** $0 \div 100\%$ PWM Duty).
+   - High refresh rate sports needle sweeping smoothly at $40\text{ FPS}$ with motion smoothing interpolation algorithm.
+   - Red Cruise Control Target Notch on the speedometer dial rim.
+2. **Virtual vehicle chassis & Active safety radar system (Vehicle Chassis & Active Radar):**
+   - Top-down wireframe vehicle chassis visualization.
+   - Pulsing radar wavefront emitting from the vehicle front: displays soothing green waves during normal operation; immediately **flashes bright red collision warning** when the PIR sensor detects an obstacle.
+   - Rear drive axle rotating synchronously according to actual motor rotational speed.
+   - Center-of-gravity G-Meter pendulum providing intuitive visualization of acceleration vibration vectors from the GY-61 sensor ($2.5g$ crash warning threshold).
+3. **ISO 2575 compliant instrument cluster warning bar (Tell-Tale Warning Bar):**
+   - Safety brake indicator `🛑 BRAKE / E-STOP ACTIVE` $\longleftrightarrow$ `🟢 SYSTEM READY`.
+   - Obstacle warning `🚶 OBSTACLE`, shock/collision indicator `💥 CRASH`.
+   - Control heartbeat indicator `⚡ WDG ALIVE`, cockpit environmental parameters `🌡️ TEMP` ($26.2^\circ\text{C}$), `💧 HUM` ($37.0\%$).
+4. **Standard PRND electronic transmission shifter (Electronic Transmission Shifter):**
+   - Mode `[ P ] PARK / STOP`: Safe vehicle stop, cutting output duty to $0\%$.
+   - Mode `[ D ] DRIVE / CLOSED-LOOP PID`: Automatic closed-loop speed tracking at $10\text{ ms}$ using digital PID algorithm synthesized from MATLAB.
+   - Mode `[ S ] SPORT / STEP TEST`: Open-loop step excitation mode for system identification.
+5. **Real-time telematics dynamics waveform (Telematics Dynamics Waveform):**
+   - Live plotting of Target Setpoint (dashed red) vs Measured Motor Speed (solid cyan) at $100\text{ Hz}$.
+   - Automatic measurement and evaluation of steady-state error: $e_{ss} = |\text{Target} - \text{Actual}| \le 2.0\text{ RPM}$, meeting **NFR-5** standard.
+
+---
+
+## 2. System Communication Layered Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
@@ -58,79 +58,79 @@ Các mục tiêu kỹ thuật trọng tâm đã hoàn thành:
                                              ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                             CORTEX-A7 (OpenSTLinux Gateway)                             │
-│   - Quản trị kênh RPMsg /dev/ttyRPMSG0 @ 115200 bps                                     │
-│   - Xác thực toàn vẹn khung tin 100% bằng CRC-16-CCITT                                  │
-│   - Logging chuỗi thời gian vào CSDL SQLite /home/root/telemetry.db (WAL Mode)          │
-│   - Ghi vết hộp đen tai nạn vĩnh viễn (Safety Blackbox Recorder)                        │
+│   - Manage RPMsg channel /dev/ttyRPMSG0 @ 115200 bps                                    │
+│   - 100% frame integrity verification via CRC-16-CCITT                                  │
+│   - Time-series logging into SQLite database /home/root/telemetry.db (WAL Mode)         │
+│   - Permanent safety blackbox recorder (Safety Blackbox Recorder)                       │
 └────────────────────────────────────────────┬────────────────────────────────────────────┘
                                              ▼ Vring Shared RAM & IPCC Mailbox
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                    CORTEX-M4 (Zephyr RTOS - Chuẩn AUTOSAR Classic 100 Hz)               │
+│                    CORTEX-M4 (Zephyr RTOS - AUTOSAR Classic Standard 100 Hz)            │
 │                                                                                         │
 │   [ASW Layer] : Swc_MotorControl (PID 10ms) ◄► Swc_SensorManager ◄► Swc_SafetyManager  │
 │   [RTE Layer] : Rte_Read_rpSpeed_rpm(), Rte_Write_ppDuty_percentage(), Rte_Write_ppEStop│
 │   [BSW / CDD] : Cdd_L298n (PWM 20kHz PD14, PE10, PH6), Cdd_Dht11 (PE12), Cdd_Ipc (RPMsg│
-│   [Hardware]  : Động cơ JGA25-370-46.8K (Encoder TIM3 PE7/PE8), GY-61 (A5), PIR (PE13) │
+│   [Hardware]  : JGA25-370-46.8K Motor (Encoder TIM3 PE7/PE8), GY-61 (A5), PIR (PE13)   │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Kết Quả Thực Nghiệm Trên Phần Cứng Thật (STM32MP157D-DK1)
+## 3. Empirical Results on Physical Hardware (STM32MP157D-DK1)
 
-Sau khi cấp đủ nguồn động lực $12\text{V}$ cho module cầu H L298N, Dashboard đã kết nối trực tiếp với bo mạch qua cổng serial `/dev/ttyACM0` và ghi nhận các kết quả thực nghiệm hoàn hảo:
+After providing adequate $12\text{V}$ power to the L298N H-bridge module, the Dashboard connected directly to the board via serial port `/dev/ttyACM0` and recorded flawless experimental results:
 
-### 3.1. Đáp Ứng Vận Tốc Vòng Kín & Kiểm Chứng Tiêu Chuẩn NFR-5
-* **Tốc độ đặt (Cruise Setpoint):** $10.0\text{ RPM}$.
-* **Tốc độ thực tế đo được (Measured Motor Speed):** Tăng tốc bám sát dải $10.0 \div 11.0\text{ RPM}$.
-* **Sai số xác lập định lượng ($e_{ss}$):**
+### 3.1. Closed-Loop Velocity Response & NFR-5 Verification
+* **Cruise Setpoint:** $10.0\text{ RPM}$.
+* **Measured Motor Speed:** Accelerated and tracked tightly within $10.0 \div 11.0\text{ RPM}$.
+* **Quantitative Steady-State Error ($e_{ss}$):**
   $$e_{ss} = |10.0 - 10.0| = 0.00\text{ RPM} \le 2.0\text{ RPM}$$
-  $\implies$ **ĐẠT CHUẨN NFR-5 $100\%$**.
-* **Độ ổn định truyền thông:**
-  * Nhận tổng cộng **$2,562\text{ khung tin}$** liên tục từ Cortex-M4.
-  * Tỷ lệ kiểm tra **CRC-16-CCITT Check đạt tuyệt đối $100.0\%$**, không có bất kỳ frame nào bị lỗi (`Errors: 0`).
+  $\implies$ **100% COMPLIANT WITH NFR-5**.
+* **Communication Stability:**
+  * Received a total of **$2,562\text{ consecutive frames}$** from Cortex-M4.
+  * **CRC-16-CCITT check reached an absolute $100.0\%$**, with zero corrupted frames (`Errors: 0`).
 
-### 3.2. Kiểm Chứng Cơ Chế Phanh An Toàn & Hộp Đen (Safety E-Stop & Blackbox)
-* **Sự kiện kích hoạt:** Cảm biến PIR phát hiện vật cản phía trước đầu xe (`PIR_OBSTACLE`).
-* **Phản ứng của Virtual Cockpit:**
-  * Cụm đèn Taplo lập tức bật sáng cảnh báo màu đỏ: **`🛑 E-STOP ACTIVE`**.
-  * Sóng radar trước mũi xe chuyển thành màu đỏ chói báo động.
-  * Thanh thông báo sự cố ghi nhận: `🚨 BLACKBOX RECORDER EVENT: PIR_OBSTACLE`.
-* **Phản ứng của Cortex-M4:**
-  * Ngắt `Duty Cycle` về $0.0\%$ trong thời gian $< 5\text{ ms}$ (đạt chuẩn **NFR-2**).
-  * Tốc độ động cơ hạ ngay lập tức về $0.0\text{ RPM}$.
-  * Chốt an toàn (Safety Interlock) khóa chặt trạng thái phanh, ngăn động cơ tự ý khởi động lại cho đến khi người dùng bấm nút **`🔄 RELEASE BRAKE / CLEAR`**.
+### 3.2. Safety E-Stop & Blackbox Mechanism Verification
+* **Trigger Event:** PIR sensor detected an obstacle in front of the vehicle (`PIR_OBSTACLE`).
+* **Virtual Cockpit Response:**
+  * Instrument cluster warning bar instantly illuminated in red: **`🛑 E-STOP ACTIVE`**.
+  * Radar waves in front of the vehicle turned into a flashing bright red alert.
+  * Fault status banner recorded: `🚨 BLACKBOX RECORDER EVENT: PIR_OBSTACLE`.
+* **Cortex-M4 Response:**
+  * Cut `Duty Cycle` to $0.0\%$ in $< 5\text{ ms}$ (meeting **NFR-2** standard).
+  * Motor speed dropped immediately to $0.0\text{ RPM}$.
+  * Safety interlock locked the braking state, preventing the motor from unintentionally restarting until the user pressed **`🔄 RELEASE BRAKE / CLEAR`**.
 
 ---
 
-## 4. Bảng Tổng Hợp Tiêu Chí Đánh Giá Tuần 10
+## 4. Week 10 Evaluation Criteria Summary Table
 
-| Hạng mục kiểm tra | Chỉ tiêu kỹ thuật đặc tả | Kết quả đo đạc thực tế trên phần cứng | Đánh giá |
+| Test Item | Specified Technical Target | Actual Measured Hardware Result | Evaluation |
 | :--- | :--- | :--- | :---: |
-| **Giao diện Qt Cockpit** | FR-A5: Đồ thị tốc độ, Gauge, Slider, nút E-Stop | Cụm Virtual Cockpit 2 đồng hồ kim + Car Radar | **ĐẠT XUẤT SẮC** |
-| **Độ chính xác bám PID** | NFR-5: Sai số xác lập $e_{ss} \le 2.0\text{ RPM}$ | $e_{ss} = 0.00\text{ RPM}$ tại điểm đặt 10 RPM | **ĐẠT (100%)** |
-| **Toàn vẹn truyền thông** | Kiểm tra CRC-16 trên từng bản tin | $2,562 / 2,562$ gói tin hợp lệ ($100.0\%$) | **ĐẠT (100%)** |
-| **Phản ứng E-Stop** | NFR-2: Cắt Duty về 0% trong $< 5\text{ ms}$ | Motor phanh dừng tức thì khi có vật cản PIR | **ĐẠT (100%)** |
-| **Ghi vết sự cố an toàn** | Hộp đen Blackbox lưu sự kiện `$FAULT` | Bắt đúng `$FAULT,REASON=PIR_OBSTACLE` | **ĐẠT (100%)** |
-| **Đo đạc môi trường** | Đọc nhiệt độ và độ ẩm từ DHT11 | Hiển thị chính xác $26.2^\circ\text{C}$ và $37.0\%RH$ | **ĐẠT (100%)** |
+| **Qt Cockpit GUI** | FR-A5: Speed plot, Gauge, Slider, E-Stop button | Virtual Cockpit cluster with dual circular gauges + Car Radar | **EXCELLENT / PASS** |
+| **PID Tracking Accuracy** | NFR-5: Steady-state error $e_{ss} \le 2.0\text{ RPM}$ | $e_{ss} = 0.00\text{ RPM}$ at 10 RPM setpoint | **PASS (100%)** |
+| **Communication Integrity** | CRC-16 check on every message frame | $2,562 / 2,562$ valid packets ($100.0\%$) | **PASS (100%)** |
+| **E-Stop Response** | NFR-2: Cut Duty to 0% within $< 5\text{ ms}$ | Motor braked and stopped instantly upon PIR obstacle detection | **PASS (100%)** |
+| **Safety Fault Logging** | Blackbox recorder logs `$FAULT` event | Correctly captured `$FAULT,REASON=PIR_OBSTACLE` | **PASS (100%)** |
+| **Environmental Sensing** | Temperature and humidity readout from DHT11 | Accurately displayed $26.2^\circ\text{C}$ and $37.0\%RH$ | **PASS (100%)** |
 
 ---
 
-## 5. Kế Hoạch Bàn Giao Bước Sang Tuần 11
+## 5. Transition & Handover Plan for Week 11
 
-Dự án đã hoàn thành trọn vẹn toàn bộ các khối phần mềm từ ASW, RTE, BSW/MCAL/CDD trên Cortex-M4 đến Linux Gateway, SQLite, MQTT và Qt Virtual Cockpit trên Cortex-A7. 
+The project has completely finished all software blocks from ASW, RTE, BSW/MCAL/CDD on Cortex-M4 to Linux Gateway, SQLite, MQTT, and Qt Virtual Cockpit on Cortex-A7. 
 
-Hệ thống chính thức bước sang **Tuần 11 (Milestone 11 - Đo Kiểm Định Lượng Phần Cứng Chuyên Sâu)**:
-> **"Tuần 11: Đo đạc định lượng Jitter vòng lặp PID bằng Logic Analyzer trên chân PE9 và thời gian đáp ứng dừng khẩn cấp E-Stop"**
+The system officially advances to **Week 11 (Milestone 11 - In-Depth Quantitative Hardware Verification)**:
+> **"Week 11: Quantitatively measure PID loop Jitter using a Logic Analyzer on pin PE9 and emergency stop (E-Stop) reaction time"**
 
-Các nội dung kỹ thuật trọng tâm Tuần 11:
-1. **Đo đạc Jitter chu kỳ PID $10\text{ ms}$ (NFR-1: Jitter $\le 50\ \mu\text{s}$):**
-   - Kẹp kênh CH1 của **Logic Analyzer** (hoặc Oscilloscope) vào chân **Test Pin `PE9`** (Header Arduino `D6` trên kit STM32MP157D-DK1).
-   - Kẹp chân GND của Logic Analyzer vào GND chung của kit.
-   - Thu thập mẫu $10,000+$ chu kỳ đảo trạng thái (toggle) để tính toán:
-     * Chu kỳ trung bình $T_{avg}$ (kỳ vọng $10.000\text{ ms}$).
-     * Sai lệch cực đại $Jitter = |T_{measured} - 10.000\text{ ms}| \le 50\ \mu\text{s}$.
-2. **Đo đạc thời gian ngắt phanh khẩn cấp (NFR-2: $t_{estop} \le 5\text{ ms}$):**
-   - Kẹp kênh CH2 vào chân ngắt PIR (`PE13`) hoặc chân kích E-Stop.
-   - Kẹp kênh CH3 vào chân PWM `PD14` (Arduino `D3`).
-   - Kích hoạt sự cố ngắt và đo độ trễ từ thời điểm cạnh lên của tín hiệu cảnh báo đến thời điểm xung PWM bị triệt tiêu hoàn toàn về $0\text{V}$.
+Key technical focus areas for Week 11:
+1. **PID $10\text{ ms}$ loop Jitter measurement (NFR-1: Jitter $\le 50\ \mu\text{s}$):**
+   - Connect channel CH1 of the **Logic Analyzer** (or Oscilloscope) to **Test Pin `PE9`** (Arduino Header `D6` on the STM32MP157D-DK1 kit).
+   - Connect the Logic Analyzer GND pin to common kit GND.
+   - Collect $10,000+$ toggle cycle samples to calculate:
+     * Average cycle time $T_{avg}$ (expected $10.000\text{ ms}$).
+     * Maximum variation $Jitter = |T_{measured} - 10.000\text{ ms}| \le 50\ \mu\text{s}$.
+2. **Emergency stop brake time measurement (NFR-2: $t_{estop} \le 5\text{ ms}$):**
+   - Connect channel CH2 to PIR interrupt pin (`PE13`) or E-Stop trigger pin.
+   - Connect channel CH3 to PWM pin `PD14` (Arduino `D3`).
+   - Trigger the interrupt fault and measure the latency from the rising edge of the alert signal until the PWM output is completely suppressed to $0\text{V}$.

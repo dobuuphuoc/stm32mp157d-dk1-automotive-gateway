@@ -1,30 +1,30 @@
-# Báo Cáo Kỹ Thuật Tuần 1 & Nhật Ký Kỹ Sư (Week 1 Review & Engineering Log)
+# Week 1 Technical Report & Engineering Log
 
-**Dự án:** STM32MP157D-DK1 Automotive Gateway & Motor Controller  
-**Kiến trúc:** Asymmetric Multiprocessing (AMP) — Cortex-A7 (OpenSTLinux) + Cortex-M4 (AUTOSAR Classic trên Zephyr RTOS)  
-**Thời gian hoàn thành:** Tuần 1 & Khởi tạo Tuần 2  
-**Tài liệu tham chiếu:** [requirements_stm32mp157_motor_gateway.md](file:///c:/Study/Personal_project/stm32mp157d-dk1/requirement/requirements_stm32mp157_motor_gateway.md)
+**Project:** STM32MP157D-DK1 Automotive Gateway & Motor Controller  
+**Architecture:** Asymmetric Multiprocessing (AMP) — Cortex-A7 (OpenSTLinux) + Cortex-M4 (AUTOSAR Classic on Zephyr RTOS)  
+**Completion Timeline:** Week 1 & Week 2 Initialization  
+**Reference Document:** [requirements_stm32mp157_motor_gateway.md](../requirement/requirements_stm32mp157_motor_gateway.md)
 
 ---
 
-## 1. Tổng Quan Kết Quả Tuần 1 (Executive Summary)
+## 1. Executive Summary
 
-Trong Tuần 1, toàn bộ các hạng mục mục tiêu nền tảng phần cứng, hệ điều hành Linux trên Cortex-A7, môi trường Cross-Compile trên máy ảo Ubuntu 22.04, và khung phần mềm thời gian thực chuẩn **AUTOSAR Classic** trên Cortex-M4 đã được hoàn thành **100%**.
+During Week 1, 100% of target objectives across hardware bring-up, Linux OS deployment on Cortex-A7, Ubuntu 22.04 cross-compilation toolchain, and the AUTOSAR Classic compliant real-time software framework on Cortex-M4 were successfully achieved.
 
-| Hạng mục mục tiêu Tuần 1 | Trạng thái | Minh chứng / Kết quả cụ thể |
+| Week 1 Target Objective | Status | Artifact / Verification Result |
 |---|:---:|---|
-| **Flash thẻ nhớ & Boot OpenSTLinux** | ✅ **100% Hoàn thành** | Sử dụng script [create_sdcard_raw.py](file:///c:/Study/Personal_project/stm32mp157d-dk1/create_sdcard_raw.py) nạp ảnh đĩa thô; kit khởi động thành công bản phát hành **OpenSTLinux 5.0.17** với **Linux Kernel 6.6.129 SMP PREEMPT** trên nhân kép Cortex-A7. |
-| **Serial Console & Mạng Ethernet** | ✅ **100% Hoàn thành** | Cổng UART Console `ttySTM0` hoạt động ổn định ở tốc độ 115200 bps (kết nối máy trạm qua cổng COM5 trên phần mềm Hercules). Cổng mạng Ethernet `end0` nhận IP tĩnh `192.168.0.15`, kiểm tra SSH và SCP thông suốt với độ trễ thấp (< 1 ms). |
-| **Subsystem `remoteproc0`** | ✅ **100% Hoàn thành** | Kiểm tra `/sys/class/remoteproc/remoteproc0` xác nhận nhân Linux Cortex-A7 sẵn sàng điều khiển cấp nguồn, nạp firmware và giám sát trạng thái nhân Cortex-M4. |
-| **Môi trường Cross-Compile (Ubuntu VM)** | ✅ **100% Hoàn thành** | Xây dựng hoàn chỉnh môi trường phát triển trên Ubuntu 22.04 LTS (VMware): nâng cấp **Python 3.12** (`~/.venv312`), **CMake 4.4.4**, **Zephyr RTOS v4.5.99** cùng các module `hal_stm32`, `cmsis`, `open-amp`, `libmetal`, và **Zephyr SDK 1.0.1** (`arm-zephyr-eabi` GCC 14.3.0). |
-| **Blinky Proof-of-Concept M4** | ✅ **100% Hoàn thành** | Biên dịch thành công firmware `blinky.elf`, tối ưu hóa kích thước bằng lệnh `strip` (giảm dung lượng từ **565 KB** xuống **27 KB**), nạp qua SCP và khởi chạy thành công trên Cortex-M4. **LED6 màu cam (LD6)** chớp tắt chu kỳ 1s độc lập hoàn toàn với Linux. |
-| **Khung dự án AUTOSAR Classic M4** | ✅ **100% Hoàn thành** | Khởi tạo cấu trúc dự án [`motor_gateway_m4`](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4) phân tầng chuẩn AUTOSAR Classic: Application Layer ([`Swc_MotorControl`](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4/src/asw)), Runtime Environment ([`Rte`](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4/src/rte)), MCAL ([`Mcal_Dio`](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4/src/bsw/mcal)), Device Tree Overlay ([`stm32mp157c_dk2.overlay`](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4/boards/stm32mp157c_dk2.overlay)), và kịch bản nạp 1-click [deploy.sh](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4/deploy.sh). |
+| **SD Card Flashing & OpenSTLinux Boot** | ✅ **100% Completed** | Utilized [create_sdcard_raw.py](../create_sdcard_raw.py) to flash raw image; development board successfully booted **OpenSTLinux 5.0.17** running **Linux Kernel 6.6.129 SMP PREEMPT** on the dual-core Cortex-A7. |
+| **Serial Console & Ethernet Networking** | ✅ **100% Completed** | UART Console port `ttySTM0` operates stably at 115200 bps (connected to workstation via COM5 on Hercules). Ethernet interface `end0` configured with static IP `192.168.0.15`; verified SSH and SCP connectivity with low latency (< 1 ms). |
+| **`remoteproc0` Subsystem** | ✅ **100% Completed** | Verified `/sys/class/remoteproc/remoteproc0`, confirming Cortex-A7 Linux is fully operational for power management, firmware loading, and lifecycle monitoring of Cortex-M4. |
+| **Cross-Compile Environment (Ubuntu VM)** | ✅ **100% Completed** | Built complete toolchain on Ubuntu 22.04 LTS (VMware): upgraded **Python 3.12** (`~/.venv312`), **CMake 4.4.4**, **Zephyr RTOS v4.5.99** with modules `hal_stm32`, `cmsis`, `open-amp`, `libmetal`, and **Zephyr SDK 1.0.1** (`arm-zephyr-eabi` GCC 14.3.0). |
+| **M4 Blinky Proof-of-Concept** | ✅ **100% Completed** | Successfully compiled `blinky.elf` firmware, optimized binary size via `strip` (reduced footprint from **565 KB** to **27 KB**), deployed via SCP, and booted on Cortex-M4. Orange LED6 (LD6) toggles at a 1 s period completely independent of Linux. |
+| **M4 AUTOSAR Classic Project Framework** | ✅ **100% Completed** | Structured [`motor_gateway_m4`](../motor_gateway_m4) conforming to AUTOSAR Classic layers: Application Layer ([`Swc_MotorControl`](../motor_gateway_m4/src/asw)), Runtime Environment ([`Rte`](../motor_gateway_m4/src/rte)), MCAL ([`Mcal_Dio`](../motor_gateway_m4/src/bsw/mcal)), Device Tree Overlay ([`stm32mp157c_dk2.overlay`](../motor_gateway_m4/boards/stm32mp157c_dk2.overlay)), and automated 1-click deployment script [deploy.sh](../motor_gateway_m4/deploy.sh). |
 
 ---
 
-## 2. Kiến Trúc Môi Trường Làm Việc (Development Workflow)
+## 2. Development Workflow & Architecture
 
-Kiến trúc triển khai phân tán Asymmetric Multiprocessing (AMP) của hệ thống được tổ chức khép kín từ máy trạm đến phần cứng vi xử lý heterogenous STM32MP157:
+The distributed Asymmetric Multiprocessing (AMP) architecture provides an end-to-end toolchain spanning the workstation down to the heterogeneous STM32MP157 SoC:
 
 ```mermaid
 flowchart TD
@@ -71,171 +71,171 @@ flowchart TD
     VSC -.->|Sync Code| SRC
     DEPLOY ==>|scp -O via LAN 192.168.0.15| FWDIR
     DEPLOY -.->|ssh remoteproc control| RPROC
-    RPROC ==>|Cấp clock / Reset / Load ELF vào SRAM| M4
+    RPROC ==>|Provide clock / Reset / Load ELF into SRAM| M4
     TER <==|USB-C ST-LINK VCP| OS
-    PE9 ==>|Kẹp probe đo xung| LA
+    PE9 ==>|Attach logic probe| LA
 ```
 
-### Phân Định Trách Nhiệm Từng Thành Phần
-1. **Workstation x86_64 / Ubuntu VM (Build Environment):**
-   - Đảm nhiệm toàn bộ việc quản lý mã nguồn, biên dịch chéo (Cross-compilation) ứng dụng Zephyr RTOS cho kiến trúc ARM Cortex-M4 (`arm-zephyr-eabi`).
-   - Rút gọn kích thước nhị phân bằng công cụ `arm-zephyr-eabi-strip` để loại bỏ metadata/debug symbols không cần thiết trước khi truyền qua mạng.
-   - Điều khiển tự động hóa quy trình nạp firmware thông qua giao thức SSH và SCP qua mạng LAN.
+### Component Responsibilities
+1. **x86_64 Workstation / Ubuntu VM (Build Environment):**
+   - Manages source code repositories and cross-compiles Zephyr RTOS applications for ARM Cortex-M4 (`arm-zephyr-eabi`).
+   - Strips ELF binaries via `arm-zephyr-eabi-strip` to eliminate non-essential metadata/debug symbols prior to network transfer.
+   - Automates firmware deployment and target control via SSH and SCP over LAN.
 2. **Cortex-A7 (High-Performance Linux Host - Vehicle Gateway):**
-   - Chạy hệ điều hành nhúng **OpenSTLinux** cung cấp khả năng đa nhiệm mạnh mẽ, mạng TCP/IP Ethernet (`end0`), và các dịch vụ tầng cao (SSH, Daemon, MQTT, Qt GUI sau này).
-   - Đóng vai trò là Host Master điều khiển toàn diện vòng đời (Life-cycle Management) của nhân Cortex-M4 thông qua subsystem chuẩn của Linux Kernel: `remoteproc`.
-   - Nơi lưu trữ tập trung các file firmware nhị phân tại phân vùng `/lib/firmware/`.
+   - Runs embedded **OpenSTLinux**, providing high-performance multitasking, TCP/IP Ethernet networking (`end0`), and high-level platform services (SSH, Daemons, future MQTT, and Qt GUI).
+   - Acts as the Host Master managing the complete lifecycle of the Cortex-M4 core via the standard Linux kernel `remoteproc` subsystem.
+   - Serves as the centralized repository for firmware binaries under `/lib/firmware/`.
 3. **Cortex-M4 (Deterministic Real-Time Controller):**
-   - Chạy độc lập trên nền **Zephyr RTOS** ở xung nhịp 209 MHz, thực thi trực tiếp từ bộ nhớ RETRAM/SRAM nội của vi điều khiển.
-   - Thực thi các tác vụ thời gian thực cứng (Hard Real-Time): điều khiển vòng kín PID $10\text{ ms}$, đọc xung encoder Hall, điều chế xung PWM điều khiển cầu H, và ngắt bảo vệ an toàn.
-   - Hoàn toàn miễn nhiễm với độ trễ (latency/jitter) hoặc sự cố sụp đổ (crash/kernel panic) của nhân Linux Cortex-A7.
+   - Executes independently on **Zephyr RTOS** at 209 MHz directly from internal RETRAM/SRAM.
+   - Executes hard real-time tasks: $10\text{ ms}$ closed-loop PID control, Hall encoder pulse decoding, H-bridge PWM generation, and fail-safe safety interrupts.
+   - Fully immune to latency, jitter, or crash/kernel panic occurrences on the Cortex-A7 Linux host.
 
 ---
 
-## 3. Nhật Ký Xử Lý Sự Cố Kỹ Thuật (Troubleshooting Log)
+## 3. Engineering Troubleshooting Log
 
-Trong quá trình khởi tạo hệ thống Tuần 1, nhóm kỹ sư đã giải quyết triệt để 5 rào cản kỹ thuật quan trọng. Bảng dưới đây tổng hợp chi tiết hiện tượng, nguyên nhân gốc rễ và giải pháp kỹ thuật chuẩn hóa:
+During Week 1 system bring-up, five critical technical roadblocks were systematically resolved. The table below summarizes the symptoms, root causes, and standard engineering solutions:
 
-| # | Vấn đề / Hiện tượng lỗi | Nguyên nhân gốc rễ (Root Cause) | Giải pháp kỹ thuật chuẩn (Permanent Fix) |
+| # | Issue / Error Symptom | Root Cause | Standard Engineering Fix |
 |---|---|---|---|
-| **1** | **SSH Connection timed out** khi kết nối đến IP `10.8.82.33`. | Máy tính Host kết nối qua mạng Wi-Fi của công ty/trường học có tính năng AP Isolation (cách ly thiết bị) và khác lớp mạng con (subnet) với cổng Ethernet của board DK1. | Chuyển máy ảo và board về chung một switch/dải mạng LAN nội bộ; cấu hình cấp phát IP cố định cho cổng Ethernet `end0` của board là **`192.168.0.15`**, ping kiểm tra round-trip time `< 1 ms`. |
-| **2** | **Lỗi phân giải tên miền & mất mạng trên Ubuntu VM** (`Temporary failure resolving`, `Destination Host Unreachable`). | Cấu hình mạng máy ảo VMware Workstation bị xung đột giữa chế độ Bridged và NAT khi máy chủ Windows đổi mạng; file `/etc/resolv.conf` thiếu máy chủ DNS công cộng. | Thiết lập Network Adapter của VM ở chế độ **NAT** (hoặc Bridged chuẩn card vật lý); cập nhật DNS máy chủ tĩnh `nameserver 8.8.8.8` và `nameserver 1.1.1.1` vào cấu hình `systemd-resolved`. |
-| **3** | **Đầy bộ nhớ đĩa máy ảo** (`No space left on device`) khi chạy lệnh `west update`. | Kho nguồn Zephyr mặc định chứa hàng chục module, driver cho tất cả các họ chip (NXP, Espressif, Microchip, TI,...) và toàn bộ lịch sử git commit hàng chục gigabyte. | Tối ưu hóa lệnh clone bằng cờ `--narrow` và giới hạn độ sâu commit: <br>`west update --narrow -o=--depth=1`<br>Chỉ giữ lại các module thiết yếu cho vi xử lý STM32MP1: `hal_stm32`, `cmsis`, `open-amp`, `libmetal`, `picolibc`. |
-| **4** | **Xung đột phiên bản phần mềm** khi cài đặt Zephyr SDK 1.0.1: CMake mặc định 3.22.1 (< 3.28.0) và Python mặc định 3.10 (< 3.12). | Phiên bản Zephyr RTOS mới nhất (v4.5.99) và SDK 1.0.1 yêu cầu chuẩn toolchain cao hơn các gói mặc định có sẵn trong kho apt của Ubuntu 22.04 LTS. | Thêm PPA `ppa:deadsnakes/ppa` để cài đặt **Python 3.12**, cô lập môi trường bằng Virtual Environment (`python3.12 -m venv ~/.venv312`), sau đó dùng `pip` nâng cấp **CMake** lên phiên bản **4.4.4** và **west** mới nhất. |
-| **5** | **Lỗi truyền file SCP** (`subsystem request for sftp failed`, `Connection closed`). | Bản phân phối OpenSTLinux sử dụng máy chủ SSH thu nhỏ **Dropbear SSH**, mặc định không tích hợp subsystem SFTP mà các công cụ SCP OpenSSH hiện đại (OpenSSH 9+) cố gắng sử dụng trước. | Sử dụng cờ **`-O`** trong lệnh `scp` (`scp -O ...`) để ép buộc công cụ truyền file qua giao thức **Legacy SCP Protocol** chuẩn, tương thích 100% với Dropbear. Đã tích hợp sẵn vào script [deploy.sh](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4/deploy.sh). |
+| **1** | **SSH Connection timed out** when connecting to IP `10.8.82.33`. | Host workstation was connected via corporate/campus Wi-Fi enforcing AP Isolation and resided on a different subnet than the DK1 board Ethernet port. | Moved VM and DK1 board to a common isolated local switch/subnet; configured static IP **`192.168.0.15`** on board interface `end0`; verified ping round-trip time `< 1 ms`. |
+| **2** | **DNS resolution failure & network loss on Ubuntu VM** (`Temporary failure resolving`, `Destination Host Unreachable`). | VMware Workstation virtual network adapter conflicted between Bridged and NAT modes during host Wi-Fi network roaming; `/etc/resolv.conf` lacked public DNS servers. | Set VM network adapter to **NAT** (or physical host bridged adapter); configured static DNS servers `nameserver 8.8.8.8` and `nameserver 1.1.1.1` in `systemd-resolved`. |
+| **3** | **VM disk exhaustion** (`No space left on device`) during `west update`. | Default Zephyr manifest pulled dozens of unused chip vendor HALs (NXP, Espressif, Microchip, TI, etc.) and deep multi-gigabyte git histories. | Optimized fetch using `--narrow` and shallow depth: <br>`west update --narrow -o=--depth=1`<br>Retained only essential modules for STM32MP1: `hal_stm32`, `cmsis`, `open-amp`, `libmetal`, and `picolibc`. |
+| **4** | **Toolchain version incompatibility** during Zephyr SDK 1.0.1 installation: default CMake was 3.22.1 (< 3.28.0) and default Python was 3.10 (< 3.12). | Zephyr RTOS (v4.5.99) and SDK 1.0.1 require newer toolchain standards than packages provided in standard Ubuntu 22.04 LTS apt repositories. | Added PPA `ppa:deadsnakes/ppa` to install **Python 3.12**, isolated the environment using virtualenv (`python3.12 -m venv ~/.venv312`), and upgraded **CMake** to version **4.4.4** and **west** via `pip`. |
+| **5** | **SCP transfer failure** (`subsystem request for sftp failed`, `Connection closed`). | OpenSTLinux distribution uses lightweight **Dropbear SSH**, which does not bundle SFTP server subsystems expected by modern OpenSSH 9+ clients by default. | Appended flag **`-O`** to `scp` command (`scp -O ...`) to enforce the standard **Legacy SCP Protocol**, ensuring 100% Dropbear compatibility. Integrated into [deploy.sh](../motor_gateway_m4/deploy.sh). |
 
 ---
 
-## 4. Sổ Tay Lệnh Nhanh (Quick Command Cheatsheet)
+## 4. Command Quick Reference
 
-Dành cho kỹ sư vận hành thao tác hàng ngày:
+Standard operating commands for daily engineering workflow:
 
-### 4.1 Môi Trường Biên Dịch (Ubuntu 22.04 VM)
+### 4.1 Build Environment (Ubuntu 22.04 VM)
 ```bash
-# 1. Kích hoạt Virtual Environment Python 3.12 & nạp cấu hình môi trường Zephyr
+# 1. Activate Python 3.12 venv and export Zephyr SDK environment variables
 source ~/.venv312/bin/activate
 export ZEPHYR_SDK_INSTALL_DIR=$HOME/zephyr-sdk-1.0.1
 
-# 2. Di chuyển vào thư mục dự án M4
+# 2. Navigate to M4 project directory
 cd ~/stm32mp157d-dk1/motor_gateway_m4
 
-# 3. Biên dịch và nạp tự động xuống board chỉ bằng 1 câu lệnh duy nhất:
+# 3. Compile and deploy firmware automatically to target via a single command:
 ./deploy.sh 192.168.0.15
 ```
 
-### 4.2 Thao Tác Thủ Công Trên Máy Ảo (Build & Strip)
+### 4.2 Manual Build & Strip Steps (Ubuntu VM)
 ```bash
-# Biên dịch Zephyr kèm Device Tree Overlay cho chân PE9, PE10, PH6
+# Compile Zephyr with Device Tree Overlay for PE9, PE10, and PH6
 west build -b stm32mp157c_dk2 . -p auto -- -DDTC_OVERLAY_FILE=boards/stm32mp157c_dk2.overlay
 
-# Rút gọn nhị phân (giảm từ 565 KB xuống 27 KB)
+# Strip binary (reducing size from 565 KB to 27 KB)
 ~/zephyr-sdk-1.0.1/gnu/arm-zephyr-eabi/bin/arm-zephyr-eabi-strip -s build/zephyr/zephyr.elf -o ~/motor_gateway_m4.elf
 
-# Nạp sang Linux A7 qua giao thức Legacy SCP
+# Transfer to Cortex-A7 Linux via Legacy SCP protocol
 scp -O ~/motor_gateway_m4.elf root@192.168.0.15:/lib/firmware/motor_gateway_m4.elf
 ```
 
-### 4.3 Quản Lý Nhân Cortex-M4 Từ Linux Console (Cortex-A7)
+### 4.3 Cortex-M4 Lifecycle Management via Linux Console (Cortex-A7)
 ```bash
-# Kiểm tra trạng thái hiện tại của M4 (running hoặc offline)
+# Query current Cortex-M4 status (running or offline)
 cat /sys/class/remoteproc/remoteproc0/state
 
-# Dừng thực thi Cortex-M4
+# Stop Cortex-M4 execution
 echo stop > /sys/class/remoteproc/remoteproc0/state
 
-# Thiết lập file firmware đích trong thư mục /lib/firmware/
+# Set target firmware image in /lib/firmware/
 echo motor_gateway_m4.elf > /sys/class/remoteproc/remoteproc0/firmware
 
-# Khởi động lại nhân Cortex-M4
+# Start Cortex-M4 execution
 echo start > /sys/class/remoteproc/remoteproc0/state
 
-# Xem nhật ký log của hệ thống kernel
+# View kernel ring buffer log
 dmesg | tail -n 20
 ```
 
-### 4.4 Nạp Firmware Khi Không Có Cáp Mạng LAN (Qua Cổng Serial ST-LINK `/dev/ttyACM0`)
-Khi không cắm dây mạng LAN RJ45, kết nối thiết bị USB ST-LINK vào máy ảo (**VM $\rightarrow$ Removable Devices $\rightarrow$ STMicroelectronics STM32 STLink $\rightarrow$ Connect**) và chạy:
+### 4.4 Serial Fallback Deployment (ST-LINK `/dev/ttyACM0` Without LAN)
+When RJ45 Ethernet is unavailable, connect the USB ST-LINK interface to the virtual machine (**VM $\rightarrow$ Removable Devices $\rightarrow$ STMicroelectronics STM32 STLink $\rightarrow$ Connect**) and run:
 ```bash
-# Tự động Build, Strip và truyền thẳng qua cổng Serial /dev/ttyACM0 (Base64 + Gzip ~6KB):
+# Automatically build, strip, and stream directly over /dev/ttyACM0 serial (Base64 + Gzip ~6KB):
 ./deploy.sh serial
 ```
 
 ---
 
-## 5. Cấu Trúc Khung Dự Án AUTOSAR Classic M4 & Thiết Lập Đo Jitter
+## 5. M4 AUTOSAR Classic Project Structure & Jitter Measurement Setup
 
-Mã nguồn trên nhân Cortex-M4 được cấu trúc hóa chặt chẽ theo phân tầng kiến trúc **AUTOSAR Classic** tại thư mục [`motor_gateway_m4/`](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4):
+Cortex-M4 firmware is organized according to **AUTOSAR Classic** architectural layering under [`motor_gateway_m4/`](../motor_gateway_m4):
 
 ```
 motor_gateway_m4/
-├── CMakeLists.txt                  <- Kịch bản build Zephyr CMake, liên kết các thư mục nguồn ASW, RTE, BSW
-├── prj.conf                        <- Cấu hình Zephyr Kconfig: Preemption, GPIO, FPU hardware, Timer
-├── deploy.sh                       <- Kịch bản Bash tự động: West Build -> Strip ELF -> SCP -> Remoteproc Restart
+├── CMakeLists.txt                  <- Zephyr CMake build script linking ASW, RTE, and BSW source directories
+├── prj.conf                        <- Zephyr Kconfig: Preemption, GPIO, hardware FPU, and Timers
+├── deploy.sh                       <- Automated deployment script: West build -> Strip ELF -> SCP -> Remoteproc restart
 ├── boards/
-│   └── stm32mp157c_dk2.overlay     <- Device Tree Overlay: Khai báo chân PE9 (Test Pin), PE10 (IN1), PH6 (IN2)
+│   └── stm32mp157c_dk2.overlay     <- Device Tree Overlay: Node bindings for PE9 (test pin), PE10 (IN1), and PH6 (IN2)
 └── src/
-    ├── main.c                      <- Điểm vào hệ thống, EcuM_Init(), Task định kỳ 10ms (k_timer + k_sem)
-    ├── std_types.h                 <- Khai báo các kiểu dữ liệu chuẩn AUTOSAR (uint8, float32, Std_ReturnType, E_OK,...)
-    ├── asw/                        <- Tầng ứng dụng (Application Layer - Độc lập phần cứng 100%)
-    │   ├── Swc_MotorControl.h      <- Định nghĩa Interface Runnable_MotorControl_10ms()
-    │   └── Swc_MotorControl.c      <- Cài đặt thuật toán điều khiển PID vận tốc động cơ & Step Open-loop
-    ├── rte/                        <- Tầng môi trường thực thi (Runtime Environment)
+    ├── main.c                      <- System entry point, EcuM_Init(), periodic 10ms task (k_timer + k_sem)
+    ├── std_types.h                 <- AUTOSAR standard platform types (uint8, float32, Std_ReturnType, E_OK, etc.)
+    ├── asw/                        <- Application Layer (100% hardware-independent ASW)
+    │   ├── Swc_MotorControl.h      <- Interface definition for Runnable_MotorControl_10ms()
+    │   └── Swc_MotorControl.c      <- Closed-loop PID velocity control and open-loop step test algorithms
+    ├── rte/                        <- Runtime Environment (RTE)
     │   ├── Rte.h                   <- Sender-Receiver Ports: Rte_Read_rpSpeed_rpm(), Rte_Write_ppDuty_percentage()
-    │   └── Rte.c                   <- Quản lý bộ đệm biến toàn cục chia sẻ an toàn và điều phối Runnable
-    └── bsw/                        <- Tầng phần mềm cơ sở (Basic Software Layer)
-        └── mcal/                   <- Tầng trừu tượng hóa vi điều khiển (Microcontroller Abstraction Layer)
-            ├── Mcal_Dio.h          <- Định nghĩa kênh DIO_CH_TEST_PE9, DIO_CH_L298N_IN1, DIO_CH_L298N_IN2
-            └── Mcal_Dio.c          <- Điều khiển trực tiếp GPIO vi điều khiển STM32MP1 qua Zephyr GPIO Driver API
+    │   └── Rte.c                   <- Concurrency-safe global buffers and runnable dispatcher
+    └── bsw/                        <- Basic Software Layer (BSW)
+        └── mcal/                   <- Microcontroller Abstraction Layer (MCAL)
+            ├── Mcal_Dio.h          <- Channel definitions for DIO_CH_TEST_PE9, DIO_CH_L298N_IN1, DIO_CH_L298N_IN2
+            └── Mcal_Dio.c          <- Direct STM32MP1 GPIO manipulation via Zephyr GPIO driver APIs
 ```
 
-### Cơ Chế Đo Jitter Chu Kỳ $T_s = 10\text{ ms}$ Bằng Logic Analyzer (FR-M10 & NFR-1)
+### Periodic Jitter Measurement via Logic Analyzer for $T_s = 10\text{ ms}$ (FR-M10 & NFR-1)
 
-Để chứng minh tính tiền định (Determinism) và độ trễ thấp của Zephyr RTOS trên nhân Cortex-M4 theo yêu cầu **NFR-1** ($T_s = 10\text{ ms}$, $\text{Jitter} \le 50\ \mu\text{s}$), hàm `Rte_TimerEvent_10ms()` trong [`Rte.c`](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4/src/rte/Rte.c) gọi trực tiếp hàm [`Dio_FlipChannel(DIO_CH_TEST_PE9)`](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4/src/bsw/mcal/Mcal_Dio.c) tại dòng đầu tiên của mỗi chu kỳ điều khiển:
+To validate real-time determinism and low latency on Cortex-M4 running Zephyr RTOS per requirement **NFR-1** ($T_s = 10\text{ ms}$, $\text{Jitter} \le 50\ \mu\text{s}$), `Rte_TimerEvent_10ms()` in [`Rte.c`](../motor_gateway_m4/src/rte/Rte.c) invokes [`Dio_FlipChannel(DIO_CH_TEST_PE9)`](../motor_gateway_m4/src/bsw/mcal/Mcal_Dio.c) as its first instruction on every control period:
 
 ```c
 void Rte_TimerEvent_10ms(void)
 {
-    /* Toggle chân Test Pin PE9 để đo kiểm Jitter thực tế trên Logic Analyzer */
+    /* Toggle test pin PE9 for hardware jitter measurement on logic analyzer */
     (void)Dio_FlipChannel(DIO_CH_TEST_PE9);
 
-    /* Thực thi Runnable điều khiển động cơ */
+    /* Dispatch motor control runnable */
     Runnable_MotorControl_10ms();
 }
 ```
 
-#### Sơ Đồ Đấu Nối Thiết Bị Đo Logic Analyzer
-Kỹ sư sử dụng thiết bị USB Logic Analyzer (Saleae Logic / 24M 8CH) đấu nối vào hàng rào cắm Arduino Header trên kit STM32MP157D-DK1 theo bảng sau:
+#### Logic Analyzer Wiring Diagram
+The USB Logic Analyzer (Saleae Logic / 24M 8CH) connects to the Arduino header on the STM32MP157D-DK1 board as follows:
 
-| Đầu nối Logic Analyzer | Vị trí cắm trên Kit DK1 | Ký hiệu Header | Chức năng tín hiệu | Ghi chú an toàn điện áp |
+| Logic Analyzer Lead | DK1 Board Pin | Header Identifier | Signal Function | Voltage Safety Notes |
 |---|---|---|---|---|
-| **Channel 0 (CH0 / CH1)** | **Pin PE9** | **CN14 - Pin 6 (Arduino D6)** | Xung vuông Test Toggle ($f = 50\text{ Hz}$, $T = 20\text{ ms}$, mỗi nửa chu kỳ $10\text{ ms}$) | Điện áp logic **3.3V CMOS** |
-| **GND Probe** | **Chân GND** | **CN16 - Pin 6 hoặc CN16 - Pin 7** | Tiếp địa chung tham chiếu điện áp | Bắt buộc phải cắm trước khi kết nối tín hiệu |
+| **Channel 0 (CH0 / CH1)** | **Pin PE9** | **CN14 - Pin 6 (Arduino D6)** | Test toggle square wave ($f = 50\text{ Hz}$, $T = 20\text{ ms}$, $10\text{ ms}$ half-period) | **3.3V CMOS** logic level |
+| **GND Probe** | **GND Pin** | **CN16 - Pin 6 or CN16 - Pin 7** | Common reference ground | Must be connected prior to signal leads |
 
 > [!IMPORTANT]
-> **Quy tắc đo kiểm Jitter:**
-> 1. Thiết lập tần số lấy mẫu trên phần mềm Logic Analyzer $\ge 10\text{ MHz}$ (độ phân giải thời gian $\le 0.1\ \mu\text{s}$).
-> 2. Đo khoảng thời gian giữa hai cạnh liên tiếp (Edge-to-Edge). Độ rộng xung chuẩn lý tưởng là $10.000\text{ ms}$.
-> 3. Độ sai lệch thời gian $\Delta t = |t_{\text{measured}} - 10\text{ ms}|$ được ghi nhận qua $\ge 10,000$ mẫu phải thỏa mãn:
+> **Jitter Measurement Protocol:**
+> 1. Configure logic analyzer sample rate to $\ge 10\text{ MHz}$ (temporal resolution $\le 0.1\ \mu\text{s}$).
+> 2. Measure edge-to-edge transition intervals. Ideal nominal half-period pulse width is $10.000\text{ ms}$.
+> 3. Period timing deviation $\Delta t = |t_{\text{measured}} - 10\text{ ms}|$ recorded across $\ge 10,000$ samples must satisfy:
 >    $$\text{Jitter}_{\max} \le 50\ \mu\text{s}$$
 
 ---
 
-## 6. Kế Hoạch Công Việc Tuần 2 (Next Steps & Checklist)
+## 6. Week 2 Action Plan & Deliverables Checklist
 
-Bước sang Tuần 2, trọng tâm dự án tập trung vào việc đưa toàn bộ phần cứng ngoại vi chấp hành và cảm biến (Động cơ JGA25-370-46.8K, Driver L298N, Encoder Hall 2 kênh) vào kiểm soát của nhân Cortex-M4:
+Entering Week 2, the primary focus centers on bringing all actuators and sensors (JGA25-370-46.8K geared DC motor, L298N driver, dual-channel Hall encoder) under full Cortex-M4 real-time control:
 
-- [ ] **Đo kiểm & Định lượng Jitter chân PE9:**
-  - Kẹp Logic Analyzer vào chân **PE9 (CN14 Pin 6)** và **GND (CN16 Pin 6)**.
-  - Chụp ảnh sóng thực tế, thu thập bảng phân phối Jitter thống kê (Mean, Max, Min, Standard Deviation $\sigma$) để lưu trữ vào thư mục `docs/figures/`.
-- [ ] **Hoàn thiện tầng `Mcal_Pwm` và `Cdd_L298n`:**
-  - Cấu hình Timer **TIM4_CH3 (Chân PD14 - Arduino D3)** phát xung PWM tần số **$20\text{ kHz}$** điều khiển chân ENA của driver L298N.
-  - Tích hợp điều khiển hướng quay IN1 (**PE10 - Arduino D4**) và IN2 (**PH6 - Arduino D9**), cài đặt tính năng phanh chủ động ngắn mạch (Active Braking: IN1=HIGH, IN2=HIGH).
-- [ ] **Hoàn thiện tầng `Mcal_Icu` / `Qdec` giải mã Encoder Hall:**
-  - Cấu hình phần cứng Timer **TIM3** ở chế độ Quadrature Encoder Mode (4x): Kênh A nối chân **PC6 (CN2 Pin 13)**, Kênh B nối chân **PC7 (CN2 Pin 15)**.
-  - Lập trình thuật toán tính toán vận tốc trục ra theo công thức:
+- [ ] **Quantify & Measure PE9 Jitter:**
+  - Connect Logic Analyzer probes to **PE9 (CN14 Pin 6)** and **GND (CN16 Pin 6)**.
+  - Capture waveform traces and log statistical jitter distributions (Mean, Max, Min, Standard Deviation $\sigma$) to `docs/figures/`.
+- [ ] **Implement `Mcal_Pwm` and `Cdd_L298n` Modules:**
+  - Configure hardware timer **TIM4_CH3 (Pin PD14 - Arduino D3)** for **$20\text{ kHz}$** PWM driving the L298N ENA input.
+  - Integrate directional control pins IN1 (**PE10 - Arduino D4**) and IN2 (**PH6 - Arduino D9**); implement active braking (IN1=HIGH, IN2=HIGH).
+- [ ] **Implement `Mcal_Icu` / Quadrature Encoder Decoding:**
+  - Configure hardware timer **TIM3** in 4x Quadrature Encoder Mode: Channel A on **PC6 (CN2 Pin 13)**, Channel B on **PC7 (CN2 Pin 15)**.
+  - Implement output shaft velocity calculation formula:
     $$\omega\ [\text{RPM}] = \frac{\Delta\text{Count}}{\text{CPR}_{\text{output}} \times T_s} \times 60 = \frac{\Delta\text{Count}}{2059.2 \times 0.010} \times 60$$
-- [ ] **Cập nhật Device Tree Linux trên Cortex-A7:**
-  - Biên dịch Device Tree Overlay trên Linux để vô hiệu hóa (disabled) các ngoại vi `tim3`, `tim4` trên nhân Cortex-A7, đảm bảo Cortex-M4 nắm độc quyền thanh ghi phần cứng mà không bị xung đột tài nguyên.
+- [ ] **Update Cortex-A7 Linux Device Tree:**
+  - Compile Linux Device Tree Overlay to disable peripheral nodes `tim3` and `tim4` under Linux on Cortex-A7, guaranteeing exclusive hardware register ownership for Cortex-M4 without resource contention.
 
 ---
-*Tài liệu được soạn thảo và kiểm duyệt bởi kỹ sư phụ trách dự án STM32MP157D-DK1 Automotive Gateway.*
+*Document authored and reviewed by the STM32MP157D-DK1 Automotive Gateway Engineering Team.*

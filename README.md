@@ -340,7 +340,7 @@ Watch the live end-to-end hardware demonstration directly on Google Drive or acc
 
 ## 📜 Documentation Portfolio
 
-* 📑 [**Final Project Report (Vietnamese)**](docs/FINAL_PROJECT_REPORT.md) — 34+ KB comprehensive thesis report detailing problem statement, methodology, system identification, and empirical results.
+* 📑 [**Final Project Report**](docs/FINAL_PROJECT_REPORT.md) — 34+ KB comprehensive thesis report detailing problem statement, methodology, system identification, and empirical results.
 * 📊 [**PowerPoint Defense Slides (.pptx)**](docs/AUTOMOTIVE_DOMAIN_GATEWAY_PRESENTATION.pptx) — Professional 16:9 widescreen presentation deck with embedded Logic Analyzer traces.
 * 📝 [**Markdown Defense Slides**](docs/PRESENTATION_SLIDES.md) — Marp-compatible presentation slide deck complete with speaker notes.
 * 📚 [**Weekly Milestones 1 to 12**](docs/) — Exhaustive weekly technical reviews covering the full 13-week development lifecycle.

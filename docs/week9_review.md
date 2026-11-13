@@ -1,37 +1,37 @@
-# Báo Cáo Tiến Độ Tuần 9: Phát Triển Linux IPC Daemon, Cơ Sở Dữ Liệu SQLite Logging & MQTT Telematics Gateway Trên Nhân Cortex-A7
+# Week 9 Progress Report: Linux IPC Daemon, SQLite Logging Database & MQTT Telematics Gateway on Cortex-A7
 
-- **Dự án:** Automotive Domain Gateway & Real-Time Motor Controller (STM32MP157D-DK1)
-- **Kiến trúc phần mềm:** AUTOSAR Classic (Cortex-M4 Zephyr RTOS) kết hợp OpenSTLinux 5.0.17 (Cortex-A7)
-- **Thời gian thực hiện:** Tuần 9 (Milestone 9)
-- **Người thực hiện:** Kỹ sư nhúng & Trợ lý Antigravity
-- **Trạng thái:** **Hoàn thành 100% Mục Tiêu Tuần 9 (Milestone 9 Completed & 100% Hardware/Database Verified)**
-
----
-
-## 1. Tổng Quan Mục Tiêu Tuần 9 (Week 9 Objectives)
-
-Theo tài liệu đặc tả kỹ thuật dự án [`requirement/requirements_stm32mp157_motor_gateway.md`](file:///c:/Study/Personal_project/stm32mp157d-dk1/requirement/requirements_stm32mp157_motor_gateway.md) (các yêu cầu chức năng FR-A2, FR-A3, FR-A4):
-> **"Tuần 9: Phát triển Linux IPC Daemon, SQLite logging và MQTT Gateway trên Cortex-A7 (OpenSTLinux)"**
-
-Các mục tiêu kỹ thuật cốt lõi của Tuần 9 gồm:
-1. **Xây dựng Linux IPC Daemon (`gateway_daemon.py`):**
-   - Quản trị kênh truyền thông liên nhân OpenAMP RPMsg `/dev/ttyRPMSG0` ở chế độ raw 115200 bps.
-   - Kiểm tra tính toàn vẹn gói tin $100\%$ bằng thuật toán **CRC-16-CCITT** trước khi phân tích cú pháp.
-   - Tự động duy trì nhịp phát Heartbeat `HB` mỗi **$500\text{ ms}$** để nuôi Watchdog của Cortex-M4.
-2. **Xây dựng CSDL SQLite Cục Bộ (`/home/root/telemetry.db`):**
-   - Tận dụng nhị phân gốc hiệu năng cao `/usr/bin/sqlite3` của OpenSTLinux để ghi dữ liệu phi chặn.
-   - Bảng **`telemetry_history`**: Lưu trữ dữ liệu chuỗi thời gian (RPM, Duty, PIR, Gia tốc rung, Nhiệt độ, Độ ẩm, Mã lỗi).
-   - Bảng **`safety_events`**: Hộp đen ghi vết tai nạn (Blackbox Recorder) lưu vết vĩnh viễn các sự cố E-Stop (`$FAULT`) kèm dấu thời gian và khung tin raw có kiểm tra CRC.
-3. **Tích hợp MQTT Telematics IoT Gateway:**
-   - Client MQTT v3.1.1 pure-socket không phụ thuộc thư viện ngoài (zero pip dependency).
-   - Chuẩn hoá định dạng JSON xuất bản lên topic: `automotive/ecu/telemetry` và `automotive/ecu/alert`.
-   - Lắng nghe lệnh điều khiển từ xa qua topic: `automotive/ecu/control`.
-4. **Giao diện Dòng Lệnh CLI Chẩn Đoán & Truy Vấn:**
-   - Hỗ trợ các lệnh chẩn đoán nhanh: `--query-db`, `--query-events`, `--cmd "<COMMAND>"`.
+- **Project:** Automotive Domain Gateway & Real-Time Motor Controller (STM32MP157D-DK1)
+- **Software Architecture:** AUTOSAR Classic (Cortex-M4 Zephyr RTOS) coupled with OpenSTLinux 5.0.17 (Cortex-A7)
+- **Execution Timeline:** Week 9 (Milestone 9)
+- **Author:** Embedded Engineer & Antigravity Assistant
+- **Status:** **100% Week 9 Objectives Completed & 100% Hardware/Database Verified**
 
 ---
 
-## 2. Kiến Trúc Hệ Thống Domain Gateway Cortex-A7
+## 1. Week 9 Objectives Overview
+
+According to project specification document [`requirement/requirements_stm32mp157_motor_gateway.md`](../requirement/requirements_stm32mp157_motor_gateway.md) (functional requirements FR-A2, FR-A3, FR-A4):
+> **"Week 9: Develop Linux IPC Daemon, SQLite logging and MQTT Gateway on Cortex-A7 (OpenSTLinux)"**
+
+Core technical objectives for Week 9 include:
+1. **Develop Linux IPC Daemon (`gateway_daemon.py`):**
+   - Manage OpenAMP RPMsg inter-core communication channel `/dev/ttyRPMSG0` in raw mode at 115200 bps.
+   - Validate $100\%$ packet integrity using **CRC-16-CCITT** prior to parsing.
+   - Maintain automated watchdog heartbeat `HB` pulse every **$500\text{ ms}$** to keep the Cortex-M4 watchdog fed.
+2. **Implement Local SQLite Database (`/home/root/telemetry.db`):**
+   - Leverage OpenSTLinux high-performance native `/usr/bin/sqlite3` binary for non-blocking logging.
+   - Table **`telemetry_history`**: Store time-series telemetry data (RPM, Duty, PIR, Vibration, Temperature, Humidity, Fault Code).
+   - Table **`safety_events`**: Automotive blackbox event recorder persistently capturing E-Stop incidents (`$FAULT`) with second-accurate timestamps and CRC-validated raw frames.
+3. **Integrate MQTT Telematics IoT Gateway:**
+   - Lightweight pure-socket MQTT v3.1.1 client with zero third-party pip dependencies.
+   - Standardize JSON serialization published to topics: `automotive/ecu/telemetry` and `automotive/ecu/alert`.
+   - Subscribe and handle remote control commands on topic: `automotive/ecu/control`.
+4. **Command-Line Interface (CLI) for Diagnostics & Querying:**
+   - Support rapid diagnostic commands: `--query-db`, `--query-events`, `--cmd "<COMMAND>"`.
+
+---
+
+## 2. Cortex-A7 Domain Gateway System Architecture
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -62,14 +62,14 @@ Các mục tiêu kỹ thuật cốt lõi của Tuần 9 gồm:
 
 ---
 
-## 3. Cấu Trúc Cơ Sở Dữ Liệu SQLite
+## 3. SQLite Database Schema
 
-File CSDL lưu tại `/home/root/telemetry.db` với cơ chế ghi trước nhật ký **WAL (Write-Ahead Logging)** để đảm bảo an toàn tuyệt đối khi mất nguồn đột ngột:
+The database file resides at `/home/root/telemetry.db` with **WAL (Write-Ahead Logging)** mode enabled to ensure ACID transactions and crash consistency during sudden power loss:
 
 ```sql
 PRAGMA journal_mode = WAL;
 
--- Bảng 1: Lịch sử vận hành động cơ & cảm biến định kỳ (Telemetry History)
+-- Table 1: Periodic motor operation & sensor telemetry history
 CREATE TABLE IF NOT EXISTS telemetry_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp DATETIME DEFAULT (datetime('now', 'localtime')),
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS telemetry_history (
     fault_code INTEGER
 );
 
--- Bảng 2: Hộp đen sự cố an toàn & phanh khẩn cấp (Safety Blackbox Events)
+-- Table 2: Safety emergency incident & braking blackbox events
 CREATE TABLE IF NOT EXISTS safety_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp DATETIME DEFAULT (datetime('now', 'localtime')),
@@ -97,13 +97,13 @@ CREATE TABLE IF NOT EXISTS safety_events (
 
 ---
 
-## 4. Kết Quả Thực Nghiệm Trên Bo Mạch STM32MP157D-DK1
+## 4. Experimental Results on STM32MP157D-DK1 Board
 
-Chuỗi kiểm thử tự động `run_week9_test.py` đã kích hoạt Daemon thu thập dữ liệu và mô phỏng một sự cố va chạm mạnh (`SHOCK 3.5g`). Kết quả truy vấn CSDL thu được:
+The automated test script `run_week9_test.py` launched the daemon, collected telemetry, and simulated a severe crash shock event (`SHOCK 3.5g`). Database query results:
 
-### 4.1. Dữ Liệu Vận Hành Thời Gian Thực (`telemetry_history`)
+### 4.1. Real-Time Operational Data (`telemetry_history`)
 ```text
-=== BANG DU LIEU CSDL SQLITE (10 DONG MOI NHAT) ===
+=== SQLITE DATABASE TABLE (10 MOST RECENT ROWS) ===
 ID   | Timestamp           | Mode  | RPM   | Duty  | PIR | VIB(mg) | Temp  | Hum   | FLT
 --------------------------------------------------------------------------------
 50   | 2026-11-12 09:43:47 | FAULT | 0.0   | 0.0   | 1   | 980     | 26.2  | 38.0  | 2
@@ -118,49 +118,49 @@ ID   | Timestamp           | Mode  | RPM   | Duty  | PIR | VIB(mg) | Temp  | Hum
 41   | 2026-11-12 09:43:45 | FAULT | 0.0   | 0.0   | 0   | 3606    | 26.2  | 38.0  | 2
 ```
 
-**Phân tích kỹ thuật:**
-* Từ bản ghi số 41 đến 46 (thời điểm xảy ra va chạm): `VIB(mg) = 3606` ($3.606g > 2.5g$). Hệ thống M4 lập tức khóa ngắt `Duty = 0.0%`, chuyển sang `Mode = FAULT`, mã lỗi `FLT = 2` (`SAFETY_FAULT_CRASH`).
-* Từ bản ghi số 47 đến 50 (sau khi va chạm kết thúc): Gia tốc rung trở về mức bình thường `VIB = 980` ($0.98g$), nhưng `Mode` và `FLT` vẫn giữ nguyên trạng thái `FAULT` an toàn.
-* Ở bản ghi số 50: Cảm biến PIR bắt được chuyển động `PIR = 1`. Nhiệt độ môi trường đo được là $26.2^\circ\text{C}$, độ ẩm $38.0\%$.
+**Technical Analysis:**
+* Records 41 through 46 (collision event window): `VIB(mg) = 3606` ($3.606g > 2.5g$). The Cortex-M4 subsystem immediately locked out power to `Duty = 0.0%`, transitioned to `Mode = FAULT`, asserting fault code `FLT = 2` (`SAFETY_FAULT_CRASH`).
+* Records 47 through 50 (post-collision state): Vibration acceleration returned to nominal baseline `VIB = 980` ($0.98g$), yet `Mode` and `FLT` strictly retained the fail-safe `FAULT` state.
+* Record 50: The PIR sensor detected motion `PIR = 1`. Ambient temperature was measured at $26.2^\circ\text{C}$ with relative humidity at $38.0\%$.
 
-### 4.2. Dữ Liệu Hộp Đen An Toàn (`safety_events`)
+### 4.2. Safety Blackbox Event Records (`safety_events`)
 ```text
-=== BANG HOP DEN AN TOAN (SAFETY BLACKBOX EVENTS) ===
+=== SAFETY BLACKBOX TABLE (SAFETY BLACKBOX EVENTS) ===
 ID   | Timestamp           | Type   | Reason           | Raw Frame
 --------------------------------------------------------------------------------
 1    | 2026-11-12 09:43:45 | FAULT  | CRASH_VIBRATION  | $FAULT,REASON=CRASH_VIBRATION*94F9
 2    | 2026-11-12 09:43:45 | FAULT  | CRASH_VIBRATION  | $FAULT,REASON=CRASH_VIBRATION*94F9
 ```
 
-**Phân tích kỹ thuật:**
-* Cả 2 bản tin `$FAULT` phát ra từ Cortex-M4 đều được Daemon bắt trọn vẹn, xác thực mã kiểm tra `*94F9` (CRC-16-CCITT) hợp lệ $100\%$ và ghi vĩnh viễn vào bảng sự cố an toàn kèm tem thời gian chuẩn xác đến từng giây.
+**Technical Analysis:**
+* Both `$FAULT` frames dispatched from Cortex-M4 were captured in full by the daemon, verified against their `*94F9` (CRC-16-CCITT) checksums ($100\%$ valid), and logged permanently into the safety blackbox table with second-accurate timestamps.
 
 ---
 
-## 5. Tổng Kết Đánh Giá Tuần 9
+## 5. Week 9 Technical Metrics Summary
 
-| Hạng mục kiểm tra | Chỉ tiêu kỹ thuật | Kết quả thực nghiệm trên phần cứng | Đánh giá |
+| Verification Item | Technical Metric | Empirical Hardware Result | Assessment |
 | :--- | :--- | :--- | :---: |
-| **Giao tiếp liên nhân RPMsg** | `/dev/ttyRPMSG0` 115200 bps | Hoạt động liên tục, không drop khung | **ĐẠT (100%)** |
-| **Kiểm tra CRC-16-CCITT** | Xác thực khung $TELEM & $FAULT | 100% bản tin hợp lệ được nạp vào DB | **ĐẠT (100%)** |
-| **Duy trì Heartbeat Watchdog** | Phát token HB mỗi 500ms | Nuôi Watchdog M4 ổn định, không timeout | **ĐẠT (100%)** |
-| **Cơ sở dữ liệu SQLite** | Bảng telemetry_history & safety_events | Đã ghi thành công 50+ bản ghi và 2 sự kiện hộp đen | **ĐẠT (100%)** |
-| **Cơ chế Blackbox Recorder** | Ghi vết tai nạn E-Stop tức thời | Bắt chính xác $FAULT,REASON=CRASH_VIBRATION | **ĐẠT (100%)** |
-| **Truy vấn CLI chẩn đoán** | `--query-db`, `--query-events` | In bảng số liệu định dạng chuyên nghiệp | **ĐẠT (100%)** |
+| **RPMsg Inter-Core IPC** | `/dev/ttyRPMSG0` at 115200 bps | Continuous operation, zero frame drops | **PASS (100%)** |
+| **CRC-16-CCITT Integrity Check** | Validate $TELEM & $FAULT frames | 100% of valid frames parsed into DB | **PASS (100%)** |
+| **Watchdog Heartbeat Service** | Transmit HB token every 500ms | Cortex-M4 watchdog serviced, zero timeouts | **PASS (100%)** |
+| **SQLite Database Engine** | telemetry_history & safety_events tables | 50+ records and 2 blackbox events logged | **PASS (100%)** |
+| **Blackbox Recorder Mechanism** | Instantaneous E-Stop incident logging | Accurately captured $FAULT,REASON=CRASH_VIBRATION | **PASS (100%)** |
+| **Diagnostic CLI Query Tool** | `--query-db`, `--query-events` | Clean tabular formatting output | **PASS (100%)** |
 
 ---
 
-## 6. Kế Hoạch Bàn Giao Bước Sang Tuần 10
+## 6. Handover & Roadmap for Week 10
 
-Hệ thống Gateway thu thập và lưu trữ CSDL trên Cortex-A7 đã hoạt động hoàn hảo. Dự án chính thức bước sang **Tuần 10**:
-> **"Tuần 10: Xây dựng giao diện Dashboard thời gian thực bằng Qt trên Cortex-A7 (OpenSTLinux)"**
+The Cortex-A7 domain gateway acquisition and database engine are fully verified and operational. The project moves into **Week 10**:
+> **"Week 10: Develop real-time Dashboard GUI using Qt on Cortex-A7 (OpenSTLinux)"**
 
-Các công việc trọng tâm Tuần 10:
-1. Thiết kế giao diện đồ họa **Qt Dashboard (C++ / QML hoặc PyQt5/PySide2)** hiển thị trực quan:
-   - Đồng hồ đo tốc độ góc động cơ (Gauge hiển thị RPM thực tế vs Target RPM).
-   - Thanh trượt điều khiển Duty Cycle & nút đặt tốc độ (`SPEED 10`, `SPEED 20`, `STOP`).
-   - Đèn chỉ thị trạng thái an toàn: Xanh (Bình thường), Đỏ (Khẩn cấp E-Stop).
-   - Biểu đồ thời gian thực (Live Chart) hiển thị gia tốc rung chấn 3 trục GY-61.
-   - Thẻ thông số môi trường: Nhiệt độ ($^\circ\text{C}$) & Độ ẩm ($\%$) từ DHT11.
-   - Nút ấn phanh khẩn cấp mềm (Software E-Stop Button) và nút phục hồi (`CLEAR`).
-2. Kết nối Backend GUI với CSDL SQLite hoặc kênh IPC RPMsg để cập nhật dữ liệu mượt mà ở tần số cao.
+Core tasks for Week 10:
+1. Design the **Qt Dashboard (C++ / QML or PyQt5/PySide2)** graphical interface featuring:
+   - Motor angular velocity circular gauge (Target RPM vs Actual RPM).
+   - PWM Duty Cycle slider and speed setpoint push buttons (`SPEED 10`, `SPEED 20`, `STOP`).
+   - Active safety status tell-tale indicators: Green (Nominal), Red (E-Stop Active).
+   - Real-time dynamics waveform chart displaying 3-axis vibration acceleration from GY-61.
+   - Ambient telemetry cards: Temperature ($^\circ\text{C}$) and Humidity ($\%$) from DHT11.
+   - Soft Emergency Brake (Software E-Stop Button) and fault recovery toggle (`CLEAR`).
+2. Integrate the GUI backend with the SQLite database or direct RPMsg IPC channel for high-frequency low-latency updates.

@@ -1,46 +1,46 @@
-# Báo Cáo Tiến Độ Tuần 4: Thiết Kế Khung Kiến Trúc AUTOSAR Classic, Chuẩn Hóa RTE & Finite State Machine (FSM) SWC_MotorControl
+# Week 4 Progress Report: AUTOSAR Classic Architecture Design, RTE Standardization & SWC_MotorControl Finite State Machine (FSM)
 
-- **Dự án:** Automotive Gateway & Real-Time Motor Controller (STM32MP157D-DK1)
-- **Kiến trúc phần mềm:** AUTOSAR Classic trên nền Zephyr RTOS (Cortex-M4) & OpenSTLinux (Cortex-A7)
-- **Thời gian thực hiện:** Tuần 4 (Milestone 4)
-- **Người thực hiện:** Kỹ sư nhúng & Trợ lý Antigravity
-- **Trạng thái:** Hoàn thành 100% Mục Tiêu Tuần 4 (Milestone 4 Completed & Hardware Verified)
-
----
-
-## 1. Tổng Quan Mục Tiêu Tuần 4 (Week 4 Objectives)
-
-Theo lộ trình đặc tả kỹ thuật dự án trong tài liệu [`requirement/requirements_stm32mp157_motor_gateway.md`](file:///c:/Study/Personal_project/stm32mp157d-dk1/requirement/requirements_stm32mp157_motor_gateway.md), **Tuần 4** là giai đoạn bước ngoặt về cấu trúc phần mềm điều khiển thời gian thực:
-> **"Tuần 4: Thiết kế khung kiến trúc AUTOSAR: Xây dựng RTE và cấu trúc SWC_MotorControl"**
-
-Trước Tuần 4, trong các giai đoạn bring-up và kiểm tra ngoại vi cơ sở (Tuần 2 & Tuần 3), thành phần điều khiển động cơ `Swc_MotorControl` vận hành dựa trên cờ kiểm tra nội bộ tạm thời (`Swc_MotorControl_SetTestMode`), đồng thời module truyền thông `Cdd_Ipc` gọi trực tiếp vào hàm nội bộ của ASW. Thiết kế này vi phạm tính độc lập phân tầng và tính khả chuyển của chuẩn công nghiệp **AUTOSAR Classic**.
-
-Trong Tuần 4, hệ thống phần mềm Cortex-M4 đã được tái cấu trúc toàn diện, đạt được các mục tiêu kỹ thuật cốt lõi:
-1. **Chuẩn hóa Kiểu Dữ Liệu AUTOSAR (`std_types.h`):** Định nghĩa kiểu dữ liệu trạng thái động cơ chuẩn (`MotorControl_ModeType`) và cấu trúc cấu hình xung bước nhảy kích thích (`MotorControl_StepConfigType`).
-2. **Xây dựng Tầng Runtime Environment (RTE) Toàn Diện (`Rte.h`, `Rte.c`):**
-   - Thiết lập giao diện cổng trao đổi dữ liệu chuẩn: **Sender-Receiver (S/R) Ports** và **Mode Switch Interfaces**.
-   - Cung cấp các hàm truy xuất phía BSW (`Rte_Set_*`, `Rte_Get_*`), cách ly hoàn toàn tầng truyền thông CDD/BSW khỏi tầng ứng dụng ASW.
-   - Quản lý logic tác động chấp hành an toàn phần cứng (`Cdd_L298n_EmergencyStop` / Dynamic Braking) tập trung tại RTE scheduler.
-3. **Tái Cấu Trúc `SWC_MotorControl` Thành Pure AUTOSAR ASW:**
-   - 100% độc lập với phần cứng: Chỉ bao hàm các header `"Swc_MotorControl.h"` và `"Rte.h"`, không chứa lời gọi API Zephyr RTOS hay thanh ghi vi điều khiển.
-   - Hiện thực hóa máy trạng thái hữu hạn (**Finite State Machine - FSM 5 Mode**): `STOPPED`, `OPEN_LOOP`, `CLOSED_LOOP`, `STEP_TEST`, `FAULT`.
-   - Cơ chế chuyển trạng thái êm ái (*Bumpless Transfer*): Tự động khử sai số tích phân PID tích lũy (`s_integral_error = 0.0f`) khi chuyển đổi trạng thái hoạt động.
-4. **Hiện Thực Hóa Bộ Phát Xung Bước Nhảy Thời Gian Thực (`MOTOR_MODE_STEP_TEST`):**
-   - Bộ tạo xung nhảy cấp mở vòng tự động đếm theo chu kỳ chuẩn $10\text{ ms}$, điều khiển động cơ từ `base_duty` nhảy vọt lên `step_duty` trong khoảng thời gian cấu hình chính xác miligiây, sau đó tự động ngắt về `STOPPED`. Đây là nền tảng trực tiếp để thu thập dữ liệu phục vụ nhận dạng hệ thống trên MATLAB ở **Tuần 5** và **Tuần 6**.
-5. **Nâng Cấp Giao Thức Điều Khiển Liên Nhân RPMsg (`Cdd_Ipc.c`) & Công Cụ Linux (`gateway_a7/ipc_ctl.sh`):**
-   - Tách rời liên kết mã trực tiếp sang ASW, giao tiếp thuần túy qua RTE.
-   - Mở rộng khung tin Telemetry (5 Hz) mang thông tin `MODE`: `$TELEM,MODE=%s,TGT=%d,RPM=%d,DUTY=%d,CNT=%ld*%04X\r\n`.
-   - Hỗ trợ khung tin phản hồi trạng thái tức thời: `$STAT,MODE=%s,TGT=%d,RPM=%d,DUTY=%d,WDG=%s,ESTOP=%d*%04X\r\n`.
-   - Bổ sung lệnh điều khiển: `MODE <mode>`, `STEP <base> <step> <dur_ms>`, `STATUS`.
-6. **Kiểm Chứng Thực Nghiệm 100% Thành Công Trên Bo Mạch STM32MP157D-DK1:**
-   - Biên dịch và nạp firmware qua Linux `remoteproc0`.
-   - Thực thi chuỗi kiểm thử tự động chuyển mạch giữa 5 trạng thái vận hành trên phần cứng thực tế qua `/dev/ttyRPMSG0`.
+- **Project:** Automotive Gateway & Real-Time Motor Controller (STM32MP157D-DK1)
+- **Software Architecture:** AUTOSAR Classic on Zephyr RTOS (Cortex-M4) & OpenSTLinux (Cortex-A7)
+- **Execution Period:** Week 4 (Milestone 4)
+- **Author:** Embedded Software Engineer & Antigravity Assistant
+- **Status:** 100% Week 4 Objectives Completed (Milestone 4 Completed & Hardware Verified)
 
 ---
 
-## 2. Kiến Trúc Phân Tầng AUTOSAR Classic Trên Cortex-M4
+## 1. Overview of Week 4 Objectives
 
-Mô hình phân tầng trên vi điều khiển Cortex-M4 được thiết kế tuân thủ nghiêm ngặt chuẩn kiến trúc **AUTOSAR Classic (Release 4.x)**:
+According to the project specification roadmap in [`requirement/requirements_stm32mp157_motor_gateway.md`](../requirement/requirements_stm32mp157_motor_gateway.md), **Week 4** marks a pivotal milestone in real-time control software architecture:
+> **"Week 4: Design AUTOSAR architectural framework: Build RTE and SWC_MotorControl structure"**
+
+Prior to Week 4, during the peripheral bring-up and preliminary verification phases (Week 2 & Week 3), the motor control component `Swc_MotorControl` operated using a temporary internal test flag (`Swc_MotorControl_SetTestMode`), while the communication module `Cdd_Ipc` directly invoked internal ASW functions. This design violated the architectural layering independence and portability mandated by the **AUTOSAR Classic** industrial standard.
+
+In Week 4, the Cortex-M4 software stack underwent a comprehensive architectural refactoring, achieving all core engineering objectives:
+1. **Standardization of AUTOSAR Data Types (`std_types.h`):** Defined standardized motor control mode types (`MotorControl_ModeType`) and step pulse excitation configuration structures (`MotorControl_StepConfigType`).
+2. **Implementation of Comprehensive Runtime Environment (RTE) Layer (`Rte.h`, `Rte.c`):**
+   - Established standard communication port interfaces: **Sender-Receiver (S/R) Ports** and **Mode Switch Interfaces**.
+   - Provided BSW accessors (`Rte_Set_*`, `Rte_Get_*`), completely decoupling the CDD/BSW communication layer from the ASW application layer.
+   - Centralized fail-safe actuation logic (`Cdd_L298n_EmergencyStop` / Dynamic Braking) within the RTE scheduler.
+3. **Refactoring `SWC_MotorControl` into Pure AUTOSAR ASW:**
+   - 100% hardware independent: Only includes `"Swc_MotorControl.h"` and `"Rte.h"`, containing zero Zephyr RTOS API calls or microcontroller register accesses.
+   - Implemented a 5-mode Finite State Machine (**FSM**): `STOPPED`, `OPEN_LOOP`, `CLOSED_LOOP`, `STEP_TEST`, `FAULT`.
+   - Smooth state transition mechanism (*Bumpless Transfer*): Automatically flushes accumulated PID integral error (`s_integral_error = 0.0f`) during operational mode transitions.
+4. **Real-Time Automated Step Pulse Generator Implementation (`MOTOR_MODE_STEP_TEST`):**
+   - Autonomous open-loop step generator timed by the standard $10\text{ ms}$ tick, driving the motor from `base_duty` to `step_duty` for a precisely configurable millisecond duration, then automatically transitioning back to `STOPPED`. This provides the direct foundation for open-loop data acquisition for MATLAB system identification in **Week 5** and **Week 6**.
+5. **RPMsg Inter-Core Protocol Upgrade (`Cdd_Ipc.c`) & Linux Tooling (`gateway_a7/ipc_ctl.sh`):**
+   - Decoupled direct code linkage to ASW, communicating strictly via RTE accessors.
+   - Extended periodic 5 Hz Telemetry frames to include `MODE`: `$TELEM,MODE=%s,TGT=%d,RPM=%d,DUTY=%d,CNT=%ld*%04X\r\n`.
+   - Supported instantaneous status query response frames: `$STAT,MODE=%s,TGT=%d,RPM=%d,DUTY=%d,WDG=%s,ESTOP=%d*%04X\r\n`.
+   - Added command set extensions: `MODE <mode>`, `STEP <base> <step> <dur_ms>`, `STATUS`.
+6. **100% Successful Empirical Verification on STM32MP157D-DK1 Hardware:**
+   - Compiled and flashed firmware via Linux `remoteproc0`.
+   - Executed automated test sequence verifying transitions across all 5 operational modes on actual target hardware via `/dev/ttyRPMSG0`.
+
+---
+
+## 2. AUTOSAR Classic Layered Architecture on Cortex-M4
+
+The layered architectural model on the Cortex-M4 microcontroller strictly adheres to the **AUTOSAR Classic (Release 4.x)** standard:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
@@ -77,82 +77,82 @@ Mô hình phân tầng trên vi điều khiển Cortex-M4 được thiết kế 
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Nguyên tắc phân tầng cốt lõi:
-1. **Độc Lập Tuyệt Đối Của Tầng ASW (Hardware Independence):**
-   - `Swc_MotorControl` không được biết đến bất kỳ ngoại vi phần cứng nào (không truy cập Timer, GPIO, PWM, Mailbox, bộ nhớ chia sẻ SRAM).
-   - `Swc_MotorControl` không sử dụng bất kỳ thư viện hoặc lời gọi hàm của hệ điều hành thời gian thực Zephyr RTOS (`zephyr/kernel.h`, `k_sem_*`, `k_thread_*`).
-   - Mọi giao tiếp với thế giới bên ngoài bắt buộc phải đi qua các hàm API sinh bởi RTE (`Rte_Read_*`, `Rte_Write_*`).
-2. **Vai Trò Điều Phối Của RTE (Data Distribution & Actuation Safety):**
-   - RTE hoạt động như một "trục truyền thông ảo" (Virtual Functional Bus - VFB) ngay trong bộ nhớ nội bộ.
-   - Nhận diện lệnh khẩn cấp: Nếu cờ `EmergencyStop == TRUE` hoặc `MotorMode == MOTOR_MODE_FAULT`, RTE sẽ bỏ qua dữ liệu tính toán từ ASW và trực tiếp ra lệnh cho `Cdd_L298n_EmergencyStop()` (kích hoạt chế độ hãm điện từ chủ động $IN1=1, IN2=1, Duty=0\%$).
-3. **Cách Ly Tầng BSW/CDD Khỏi Tầng Ứng Dụng:**
-   - Module `Cdd_Ipc` giải mã gói tin từ Cortex-A7 nhưng không gọi trực tiếp sang hàm xử lý động cơ. Thay vào đó, nó ghi dữ liệu vào các biến đệm RTE thông qua các hàm accessor (`Rte_Set_MotorMode`, `Rte_Set_rpTargetSpeed_rpm`,...).
+### Core Architectural Principles:
+1. **Absolute Independence of ASW Layer (Hardware Independence):**
+   - `Swc_MotorControl` has zero awareness of underlying hardware peripherals (no direct access to Timers, GPIOs, PWM, Mailbox, or SRAM shared memory).
+   - `Swc_MotorControl` does not use any RTOS headers or API calls from Zephyr RTOS (`zephyr/kernel.h`, `k_sem_*`, `k_thread_*`).
+   - All interactions with the outside world must traverse standard RTE API functions (`Rte_Read_*`, `Rte_Write_*`).
+2. **Coordination Role of the RTE (Data Distribution & Actuation Safety):**
+   - The RTE acts as a Virtual Functional Bus (VFB) within local memory.
+   - Emergency command handling: If `EmergencyStop == TRUE` or `MotorMode == MOTOR_MODE_FAULT`, the RTE bypasses calculated ASW output values and directly commands `Cdd_L298n_EmergencyStop()` (activating dynamic active electromagnetic braking: $IN1=1, IN2=1, Duty=0\%$).
+3. **Decoupling BSW/CDD from the Application Layer:**
+   - The `Cdd_Ipc` module decodes commands received from Cortex-A7 but does not invoke ASW routines directly. Instead, it writes data into RTE buffers using RTE accessor functions (`Rte_Set_MotorMode`, `Rte_Set_rpTargetSpeed_rpm`, etc.).
 
 ---
 
-## 3. Chi Tiết Thiết Kế Máy Trạng Thái Hữu Hạn (FSM)
+## 3. Finite State Machine (FSM) Design Details
 
-Để kiểm soát chu trình hoạt động của động cơ chấp hành một cách tất định và an toàn, `SWC_MotorControl` cài đặt một máy trạng thái hữu hạn (**FSM**) gồm 5 trạng thái phân biệt:
+To govern actuator operational cycles deterministically and safely, `SWC_MotorControl` implements an FSM comprising 5 distinct modes:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> MOTOR_MODE_CLOSED_LOOP: Khởi động mặc định
+    [*] --> MOTOR_MODE_CLOSED_LOOP: Default Startup
 
     state MOTOR_MODE_STOPPED {
-        description: Ngắt lực kéo, Duty = 0% (Coasting)
+        description: Coasting, Duty = 0%
     }
 
     state MOTOR_MODE_OPEN_LOOP {
-        description: Điều khiển điện áp cố định Duty % (0-90%)
+        description: Fixed Voltage Feed Duty % (0-90%)
     }
 
     state MOTOR_MODE_CLOSED_LOOP {
-        description: Vòng kín PID 10ms bám Setpoint (RPM)
+        description: Closed-loop 10ms PID Setpoint Tracking (RPM)
     }
 
     state MOTOR_MODE_STEP_TEST {
-        description: Xung bước nhảy tự động phục vụ SysID
+        description: Automated Step Pulse for SysID
     }
 
     state MOTOR_MODE_FAULT {
-        description: Phanh điện từ khẩn cấp (Active Brake)
+        description: Active Dynamic Electromagnetic Brake
     }
 
-    MOTOR_MODE_CLOSED_LOOP --> MOTOR_MODE_OPEN_LOOP: Lệnh DUTY <val>
-    MOTOR_MODE_CLOSED_LOOP --> MOTOR_MODE_STEP_TEST: Lệnh STEP <cfg>
-    MOTOR_MODE_CLOSED_LOOP --> MOTOR_MODE_STOPPED: Lệnh STOP / SPEED 0
+    MOTOR_MODE_CLOSED_LOOP --> MOTOR_MODE_OPEN_LOOP: Command DUTY <val>
+    MOTOR_MODE_CLOSED_LOOP --> MOTOR_MODE_STEP_TEST: Command STEP <cfg>
+    MOTOR_MODE_CLOSED_LOOP --> MOTOR_MODE_STOPPED: Command STOP / SPEED 0
 
-    MOTOR_MODE_OPEN_LOOP --> MOTOR_MODE_CLOSED_LOOP: Lệnh SPEED <val>
-    MOTOR_MODE_OPEN_LOOP --> MOTOR_MODE_STEP_TEST: Lệnh STEP <cfg>
-    MOTOR_MODE_OPEN_LOOP --> MOTOR_MODE_STOPPED: Lệnh STOP / DUTY 0
+    MOTOR_MODE_OPEN_LOOP --> MOTOR_MODE_CLOSED_LOOP: Command SPEED <val>
+    MOTOR_MODE_OPEN_LOOP --> MOTOR_MODE_STEP_TEST: Command STEP <cfg>
+    MOTOR_MODE_OPEN_LOOP --> MOTOR_MODE_STOPPED: Command STOP / DUTY 0
 
-    MOTOR_MODE_STEP_TEST --> MOTOR_MODE_STOPPED: Quá trình Step kết thúc
-    MOTOR_MODE_STEP_TEST --> MOTOR_MODE_STOPPED: Lệnh STOP
+    MOTOR_MODE_STEP_TEST --> MOTOR_MODE_STOPPED: Step Test Completed
+    MOTOR_MODE_STEP_TEST --> MOTOR_MODE_STOPPED: Command STOP
 
-    MOTOR_MODE_STOPPED --> MOTOR_MODE_CLOSED_LOOP: Lệnh SPEED <val>
-    MOTOR_MODE_STOPPED --> MOTOR_MODE_OPEN_LOOP: Lệnh DUTY <val>
-    MOTOR_MODE_STOPPED --> MOTOR_MODE_STEP_TEST: Lệnh STEP <cfg>
+    MOTOR_MODE_STOPPED --> MOTOR_MODE_CLOSED_LOOP: Command SPEED <val>
+    MOTOR_MODE_STOPPED --> MOTOR_MODE_OPEN_LOOP: Command DUTY <val>
+    MOTOR_MODE_STOPPED --> MOTOR_MODE_STEP_TEST: Command STEP <cfg>
 
-    MOTOR_MODE_STOPPED --> MOTOR_MODE_FAULT: Mất Heartbeat / Lỗi an toàn
-    MOTOR_MODE_OPEN_LOOP --> MOTOR_MODE_FAULT: Mất Heartbeat / Lỗi an toàn
-    MOTOR_MODE_CLOSED_LOOP --> MOTOR_MODE_FAULT: Mất Heartbeat / Lỗi an toàn
-    MOTOR_MODE_STEP_TEST --> MOTOR_MODE_FAULT: Mất Heartbeat / Lỗi an toàn
+    MOTOR_MODE_STOPPED --> MOTOR_MODE_FAULT: Heartbeat Lost / Safety Fault
+    MOTOR_MODE_OPEN_LOOP --> MOTOR_MODE_FAULT: Heartbeat Lost / Safety Fault
+    MOTOR_MODE_CLOSED_LOOP --> MOTOR_MODE_FAULT: Heartbeat Lost / Safety Fault
+    MOTOR_MODE_STEP_TEST --> MOTOR_MODE_FAULT: Heartbeat Lost / Safety Fault
 
-    MOTOR_MODE_FAULT --> MOTOR_MODE_STOPPED: Lệnh WDG OFF / STOP
+    MOTOR_MODE_FAULT --> MOTOR_MODE_STOPPED: Command WDG OFF / STOP
 ```
 
-### Các trạng thái vận hành chi tiết:
+### Detailed Operational States:
 
-| Trạng thái (`MotorControl_ModeType`) | Giá trị số | Trạng thái ngõ ra PWM & H-Bridge | Hành vi thuật toán điều khiển |
+| State (`MotorControl_ModeType`) | Numerical Value | PWM Output & H-Bridge Status | Control Algorithm Behavior |
 |---|:---:|---|---|
-| **`MOTOR_MODE_STOPPED`** | `0u` | Duty = 0.0%, H-Bridge thả nổi (`DIR_COAST`) | Động cơ dừng quay tự do, bộ tích phân PID được giữ ở mức 0. |
-| **`MOTOR_MODE_OPEN_LOOP`** | `1u` | Duty = $Duty_{\text{target}}$ ($0 \div 90\%$), `DIR_FORWARD` | Động cơ quay theo công suất mở vòng cố định, phục vụ hiệu chuẩn điện áp. |
-| **`MOTOR_MODE_CLOSED_LOOP`** | `2u` | Duty tính từ PID ($25 \div 75\%$), `DIR_FORWARD` | Vòng kín PID $T_s = 10\text{ ms}$, tự động bù tải bám tốc độ đặt (RPM). |
-| **`MOTOR_MODE_STEP_TEST`** | `3u` | Base Duty $\rightarrow$ Step Duty $\rightarrow$ 0% | Tự động phát xung bước nhảy mở vòng định thì chính xác theo chu kỳ $10\text{ ms}$. |
-| **`MOTOR_MODE_FAULT`** | `4u` | Duty = 0.0%, H-Bridge đóng mạch hãm (`DIR_BRAKE`) | Phanh điện từ khẩn cấp (Short-circuit brake $IN1=1, IN2=1$), an toàn tuyệt đối. |
+| **`MOTOR_MODE_STOPPED`** | `0u` | Duty = 0.0%, H-Bridge floating (`DIR_COAST`) | Free-wheeling stop, PID integral accumulator clamped to 0. |
+| **`MOTOR_MODE_OPEN_LOOP`** | `1u` | Duty = $Duty_{\text{target}}$ ($0 \div 90\%$), `DIR_FORWARD` | Motor runs at a fixed open-loop duty cycle, used for voltage/speed calibration. |
+| **`MOTOR_MODE_CLOSED_LOOP`** | `2u` | Duty computed via PID ($25 \div 75\%$), `DIR_FORWARD` | Closed-loop PID control at $T_s = 10\text{ ms}$, automatically compensating for load to track setpoint speed (RPM). |
+| **`MOTOR_MODE_STEP_TEST`** | `3u` | Base Duty $\rightarrow$ Step Duty $\rightarrow$ 0% | Autonomous open-loop step pulse generation timed deterministically at $10\text{ ms}$ intervals. |
+| **`MOTOR_MODE_FAULT`** | `4u` | Duty = 0.0%, H-Bridge short-braking (`DIR_BRAKE`) | Emergency dynamic brake (short-circuit brake $IN1=1, IN2=1$) for absolute fail-safe operation. |
 
-### Cơ chế chuyển mạch êm ái (*Bumpless Transfer*):
-Khi chuyển từ trạng thái khác (`STOPPED`, `OPEN_LOOP`, `STEP_TEST`) sang `MOTOR_MODE_CLOSED_LOOP`, biến tích phân của PID (`s_integral_error`) và sai số trước đó (`s_prev_error`) có thể đang mang giá trị lịch sử cũ, dễ gây ra hiện tượng xung dòng điện vọt lố (*integral kick*). Trong hàm [`Runnable_MotorControl_10ms()`](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4/src/asw/Swc_MotorControl.c#L70-L86), FSM theo dõi biến `s_prev_mode`. Khi phát hiện sườn lên chuyển trạng thái vào `CLOSED_LOOP`, toàn bộ trạng thái nội tại của PID được reset về 0:
+### Bumpless Transfer Mechanism:
+When transitioning from other modes (`STOPPED`, `OPEN_LOOP`, `STEP_TEST`) into `MOTOR_MODE_CLOSED_LOOP`, the PID integral accumulator (`s_integral_error`) and prior error (`s_prev_error`) might hold stale historical values, which could cause a severe current spike or overshoot (*integral kick*). Inside [`Runnable_MotorControl_10ms()`](../motor_gateway_m4/src/asw/Swc_MotorControl.c#L70-L86), the FSM tracks `s_prev_mode`. When detecting a rising edge transition into `CLOSED_LOOP`, all internal PID state variables are instantly reset to zero:
 ```c
 if (mode != s_prev_mode) {
     if (mode == MOTOR_MODE_CLOSED_LOOP) {
@@ -165,22 +165,22 @@ if (mode != s_prev_mode) {
 
 ---
 
-## 4. Hiện Thực Hóa Bộ Tạo Xung Bước Nhảy Tự Động (`MOTOR_MODE_STEP_TEST`)
+## 4. Implementation of Automated Step Pulse Generator (`MOTOR_MODE_STEP_TEST`)
 
-Nhằm phục vụ bài thí nghiệm **Open-Loop Step Test** ở Tuần 5 để lấy dữ liệu nhận dạng hàm truyền trên phần mềm MATLAB System Identification Toolbox ở Tuần 6, `SWC_MotorControl` đã tích hợp sẵn một bộ tạo hàm bước nhảy chính xác theo thời gian thực.
+To support the **Open-Loop Step Test** experiment in Week 5 for transfer function parameter estimation using the MATLAB System Identification Toolbox in Week 6, `SWC_MotorControl` embeds a deterministic real-time step generator.
 
-### Cấu trúc cấu hình bước nhảy:
-Định nghĩa trong [`std_types.h`](file:///c:/Study/Personal_project/stm32mp157d-dk1/motor_gateway_m4/src/std_types.h#L48-L53):
+### Step Configuration Data Structure:
+Defined in [`std_types.h`](../motor_gateway_m4/src/std_types.h#L48-L53):
 ```c
 typedef struct {
-    float32 base_duty;      /* Mức Duty phần trăm ban đầu trước khi nhảy (vd: 20%) */
-    float32 step_duty;      /* Mức Duty kích thích nhảy vọt (vd: 65%) */
-    uint32  pre_step_ms;    /* Thời gian chạy ổn định ở mức base_duty (vd: 500ms) */
-    uint32  step_dur_ms;    /* Thời gian duy trì mức step_duty (vd: 800ms) */
+    float32 base_duty;      /* Initial base duty percentage before step (e.g., 20%) */
+    float32 step_duty;      /* Target step excitation duty percentage (e.g., 65%) */
+    uint32  pre_step_ms;    /* Baseline duration at base_duty before step (e.g., 500ms) */
+    uint32  step_dur_ms;    /* Duration to hold step_duty (e.g., 800ms) */
 } MotorControl_StepConfigType;
 ```
 
-### Giản đồ thời gian phát xung bước nhảy:
+### Step Pulse Timing Diagram:
 ```
 Duty [%]
   ▲
@@ -191,10 +191,10 @@ Duty [%]
   │     │  Base Duty    │       Step Duty        │   Stopped (0%)
   │     │   (20%)       │        (65%)           │     (Auto)
   └─────┴───────────────┴────────────────────────┴─────────────────►
-  t=0                 t=t_pre                  t=t_pre+t_step       Thời gian (ms)
+  t=0                 t=t_pre                  t=t_pre+t_step       Time (ms)
 ```
 
-### Logic thực thi trong vòng lặp thời gian thực $10\text{ ms}$:
+### Real-Time Execution Logic in the $10\text{ ms}$ Task:
 ```c
 case MOTOR_MODE_STEP_TEST:
 {
@@ -204,15 +204,15 @@ case MOTOR_MODE_STEP_TEST:
         uint32 step_ticks = step_cfg.step_dur_ms / 10u;
 
         if (s_step_tick_10ms < pre_ticks) {
-            /* Giai đoạn 1: Giữ mức nền base_duty */
+            /* Phase 1: Maintain base_duty baseline */
             duty = step_cfg.base_duty;
             s_step_tick_10ms++;
         } else if (s_step_tick_10ms < (pre_ticks + step_ticks)) {
-            /* Giai đoạn 2: Nhảy bậc thang lên step_duty */
+            /* Phase 2: Step jump to step_duty */
             duty = step_cfg.step_duty;
             s_step_tick_10ms++;
         } else {
-            /* Giai đoạn 3: Hoàn tất bài thử nghiệm -> Chuyển về STOPPED */
+            /* Phase 3: Step test complete -> Transition to STOPPED */
             duty = 0.0f;
             mode = MOTOR_MODE_STOPPED;
             (void)Rte_Write_ppMotorMode(MOTOR_MODE_STOPPED);
@@ -224,45 +224,45 @@ case MOTOR_MODE_STEP_TEST:
 
 ---
 
-## 5. Mở Rộng Giao Thức Điều Khiển Liên Nhân RPMsg (`Cdd_Ipc`)
+## 5. RPMsg Inter-Core Protocol Extension (`Cdd_Ipc`)
 
-Giao thức truyền thông liên nhân giữa Cortex-A7 và Cortex-M4 qua thiết bị ký tự `/dev/ttyRPMSG0` được nâng cấp toàn diện để tương thích với FSM 5 trạng thái mới:
+The inter-core communication protocol between Cortex-A7 and Cortex-M4 via character device `/dev/ttyRPMSG0` was fully upgraded to align with the new 5-mode FSM:
 
-### 1. Khung Telemetry định kỳ 5 Hz (mỗi 200ms):
+### 1. Periodic 5 Hz Telemetry Frame (every 200ms):
 ```text
 $TELEM,MODE=<mode>,TGT=<int>,RPM=<int>,DUTY=<int>,CNT=<long>*<CRC16_HEX>\r\n
 ```
-*Ví dụ:* `$TELEM,MODE=STEP,TGT=60,RPM=0,DUTY=65,CNT=-1*D173`
+*Example:* `$TELEM,MODE=STEP,TGT=60,RPM=0,DUTY=65,CNT=-1*D173`
 
-### 2. Khung phản hồi trạng thái tức thời (`STATUS`):
+### 2. Instantaneous Status Response Frame (`STATUS`):
 ```text
 $STAT,MODE=<mode>,TGT=<int>,RPM=<int>,DUTY=<int>,WDG=<ON|OFF>,ESTOP=<0|1>*<CRC16_HEX>\r\n
 ```
-*Ví dụ:* `$STAT,MODE=FAULT,TGT=0,RPM=0,DUTY=0,WDG=ON,ESTOP=1*AD40`
+*Example:* `$STAT,MODE=FAULT,TGT=0,RPM=0,DUTY=0,WDG=ON,ESTOP=1*AD40`
 
-### 3. Bảng mã tập lệnh điều khiển từ Cortex-A7:
+### 3. Cortex-A7 Command Protocol Reference:
 
-| Cú pháp lệnh | Ý nghĩa chức năng | Tác động lên RTE & ASW |
+| Command Syntax | Functional Description | Impact on RTE & ASW |
 |---|---|---|
-| **`STATUS`** | Yêu cầu M4 phản hồi ngay khung `$STAT` | Gửi frame `$STAT` chứa Mode, Speed, Duty, Watchdog, E-Stop. |
-| **`MODE <name>`** | Yêu cầu chuyển trạng thái thủ công (`STOP`, `OPEN`, `PID`, `STEP`, `FAULT`) | `Rte_Set_MotorMode(...)` cập nhật Mode tương ứng cho FSM. |
-| **`SPEED <val>`** | Đặt tốc độ vòng kín ($RPM$) | `Rte_Set_rpTargetSpeed_rpm(val)`, chuyển sang `MOTOR_MODE_CLOSED_LOOP`. |
-| **`DUTY <val>`** | Đặt công suất mở vòng ($0 \div 90\%$) | `Rte_Set_TargetDuty_percentage(val)`, chuyển sang `MOTOR_MODE_OPEN_LOOP`. |
-| **`STEP <b> <s> <ms>`** | Kích hoạt chu trình bước nhảy tự động | Cấu hình `MotorControl_StepConfigType`, chuyển sang `MOTOR_MODE_STEP_TEST`. |
-| **`STOP`** | Lệnh dừng an toàn | Clear `EmergencyStop`, chuyển Mode sang `MOTOR_MODE_STOPPED`. |
-| **`WDG ON`** | Bật giám sát Heartbeat Watchdog 1.0s | Bật cờ `s_watchdog_enabled`, reset bộ đếm định thời. |
-| **`WDG OFF`** | Tắt giám sát Watchdog | Tắt cờ `s_watchdog_enabled`, clear cờ `EmergencyStop`. |
-| **`HB`** | Lệnh nuôi Watchdog (Keep-Alive) | Reset bộ đếm timeout về 0 (duy trì hệ thống hoạt động). |
+| **`STATUS`** | Request M4 to immediately return a `$STAT` frame | Transmits `$STAT` frame containing Mode, Speed, Duty, Watchdog, E-Stop status. |
+| **`MODE <name>`** | Manual mode transition request (`STOP`, `OPEN`, `PID`, `STEP`, `FAULT`) | `Rte_Set_MotorMode(...)` updates the corresponding Mode for the FSM. |
+| **`SPEED <val>`** | Set closed-loop setpoint speed ($RPM$) | `Rte_Set_rpTargetSpeed_rpm(val)`, transitions to `MOTOR_MODE_CLOSED_LOOP`. |
+| **`DUTY <val>`** | Set open-loop PWM duty percentage ($0 \div 90\%$) | `Rte_Set_TargetDuty_percentage(val)`, transitions to `MOTOR_MODE_OPEN_LOOP`. |
+| **`STEP <b> <s> <ms>`** | Trigger automated step test cycle | Configures `MotorControl_StepConfigType`, transitions to `MOTOR_MODE_STEP_TEST`. |
+| **`STOP`** | Safe stop command | Clears `EmergencyStop`, transitions Mode to `MOTOR_MODE_STOPPED`. |
+| **`WDG ON`** | Enable 1.0s Heartbeat Watchdog supervision | Sets `s_watchdog_enabled`, resets timeout counter. |
+| **`WDG OFF`** | Disable Watchdog supervision | Clears `s_watchdog_enabled`, clears `EmergencyStop` flag. |
+| **`HB`** | Watchdog keep-alive kick | Resets timeout counter to 0 (maintains active operation). |
 
 ---
 
-## 6. Kết Quả Đo Kiểm & Xác Minh Thực Tế Trên Phần Cứng
+## 6. Empirical Hardware Testing & Verification Results
 
-Toàn bộ hệ thống mã nguồn mới đã được biên dịch bằng Zephyr SDK 1.0.1 và nạp xuống vi điều khiển **STM32MP157D-DK1** thông qua Linux Remoteproc framework.
+The refactored firmware was compiled with Zephyr SDK 1.0.1 and deployed to the **STM32MP157D-DK1** target via the Linux Remoteproc framework.
 
 ```
 +-----------------------------------------------------------------------------------------+
-|                  HÌNH ẢNH MINH CHỨNG KẾT QUẢ KIỂM THỬ TRÊN PHẦN CỨNG                    |
+|                         HARDWARE VERIFICATION & EXECUTION LOGS                          |
 +-----------------------------------------------------------------------------------------+
 |                                                                                         |
 |  [2348.027542] remoteproc remoteproc0: Booting fw image motor_gateway_m4.elf, size 49060|
@@ -287,44 +287,44 @@ Toàn bộ hệ thống mã nguồn mới đã được biên dịch bằng Zeph
 +-----------------------------------------------------------------------------------------+
 ```
 
-### Bảng Ma Trận Đánh Giá Kiểm Thử Thực Nghiệm (Test Matrix):
+### Empirical Test Matrix:
 
-| Ca kiểm thử (Test Case) | Lệnh kích hoạt | Kỳ vọng kỹ thuật | Kết quả quan sát trên phần cứng | Đánh giá |
+| Test Case | Trigger Command | Technical Expectation | Hardware Observed Result | Verdict |
 |---|---|---|---|:---:|
-| **TC-W4-01: Truy vấn Status ban đầu** | `STATUS` | Trả về `$STAT` Mode=PID, WDG=OFF, ESTOP=0 | `$STAT,MODE=PID,TGT=60,RPM=2,DUTY=58,WDG=OFF,ESTOP=0*833D` | **PASS** |
-| **TC-W4-02: Chuyển Mode Open-Loop** | `DUTY 40` | Mode chuyển thành `OPEN`, Duty ghim cứng 40% | `$TELEM,MODE=OPEN,TGT=60,RPM=0,DUTY=40,CNT=...*FE4B` | **PASS** |
-| **TC-W4-03: Kích thích xung bước nhảy** | `STEP 20 65 800` | Giai đoạn 1 ra Duty 20%, Giai đoạn 2 ra Duty 65% | `$TELEM,MODE=STEP,TGT=60,DUTY=20...` tiếp theo `$TELEM,MODE=STEP,TGT=60,DUTY=65...` | **PASS** |
-| **TC-W4-04: Tự động ngắt khi xong Step** | Hết 800ms | Tự động chuyển `STOPPED`, Duty về 0% | `$TELEM,MODE=STOP,TGT=60,RPM=0,DUTY=0,CNT=...*A4FC` | **PASS** |
-| **TC-W4-05: Chuyển mạch êm về PID** | `SPEED 60` | Chuyển lại `PID`, khử vọt lố tích phân | `$TELEM,MODE=PID,TGT=60,RPM=2,DUTY=58,CNT=...` | **PASS** |
-| **TC-W4-06: Cơ chế an toàn Watchdog Timeout** | `WDG ON` (ngừng `HB`) | Hết 1.0s, M4 tự động chuyển `FAULT`, phanh động cơ | `$TELEM,MODE=FAULT,TGT=0,RPM=0,DUTY=0,CNT=...` | **PASS** |
-| **TC-W4-07: Xác nhận E-Stop trên Status** | `STATUS` | Trả về `$STAT` Mode=FAULT, WDG=ON, ESTOP=1 | `$STAT,MODE=FAULT,TGT=0,RPM=0,DUTY=0,WDG=ON,ESTOP=1*AD40` | **PASS** |
+| **TC-W4-01: Initial Status Query** | `STATUS` | Returns `$STAT` with Mode=PID, WDG=OFF, ESTOP=0 | `$STAT,MODE=PID,TGT=60,RPM=2,DUTY=58,WDG=OFF,ESTOP=0*833D` | **PASS** |
+| **TC-W4-02: Open-Loop Mode Switch** | `DUTY 40` | Mode changes to `OPEN`, Duty clamped to 40% | `$TELEM,MODE=OPEN,TGT=60,RPM=0,DUTY=40,CNT=...*FE4B` | **PASS** |
+| **TC-W4-03: Step Pulse Excitation** | `STEP 20 65 800` | Phase 1 outputs 20% Duty, Phase 2 outputs 65% Duty | `$TELEM,MODE=STEP,TGT=60,DUTY=20...` followed by `$TELEM,MODE=STEP,TGT=60,DUTY=65...` | **PASS** |
+| **TC-W4-04: Auto-Stop on Step Completion** | 800ms expires | Automatically transitions to `STOPPED`, Duty = 0% | `$TELEM,MODE=STOP,TGT=60,RPM=0,DUTY=0,CNT=...*A4FC` | **PASS** |
+| **TC-W4-05: Bumpless Transfer to PID** | `SPEED 60` | Switches to `PID`, eliminates integral kick | `$TELEM,MODE=PID,TGT=60,RPM=2,DUTY=58,CNT=...` | **PASS** |
+| **TC-W4-06: Watchdog Timeout Safety Action** | `WDG ON` (cease `HB`) | After 1.0s, M4 automatically switches to `FAULT`, brakes motor | `$TELEM,MODE=FAULT,TGT=0,RPM=0,DUTY=0,CNT=...` | **PASS** |
+| **TC-W4-07: E-Stop Status Confirmation** | `STATUS` | Returns `$STAT` with Mode=FAULT, WDG=ON, ESTOP=1 | `$STAT,MODE=FAULT,TGT=0,RPM=0,DUTY=0,WDG=ON,ESTOP=1*AD40` | **PASS** |
 
 ---
 
-## 7. Bảng Đối Chiếu Yêu Cầu Chức Năng (Requirements Traceability Matrix)
+## 7. Requirements Traceability Matrix
 
-| Mã yêu cầu | Mô tả yêu cầu trong tài liệu SRS | Hiện trạng đáp ứng ở Tuần 4 | Mức độ hoàn thành |
+| Requirement ID | SRS Description | Week 4 Compliance Status | Completion Level |
 |---|---|---|:---:|
-| **FR-M1** | Đọc encoder qua Timer Polling/ICU chu kỳ 10ms | Hoàn thành từ Tuần 2, tích hợp liên tục vào RTE | **100% ĐẠT** |
-| **FR-M2** | Tạo xung PWM 20 kHz (TIM4_CH3, PD14) & chiều quay L298N | Hoàn thành từ Tuần 2, điều khiển bởi RTE scheduler | **100% ĐẠT** |
-| **FR-M3** | Thuật toán PID rời rạc chu kỳ 10ms, Anti-windup Clamping | Đã tích hợp vào `MOTOR_MODE_CLOSED_LOOP` với bumpless transfer | **100% ĐẠT** |
-| **FR-M7** | Phanh khẩn cấp chủ động (Duty=0%, IN1=1, IN2=1) tự trị khi mất an toàn | Đã tích hợp vào `MOTOR_MODE_FAULT` và cờ `EmergencyStop` trong RTE | **100% ĐẠT** |
-| **FR-M8** | Đóng gói/giải mã Telemetry và tập lệnh liên nhân qua RPMsg/OpenAMP | Nâng cấp khung `$TELEM` mang `MODE` và bổ sung lệnh `MODE`, `STEP`, `STATUS` | **100% ĐẠT** |
-| **FR-M9** | Chế độ chạy chu trình mở vòng (Open-loop Step Response) phục vụ MATLAB | Đã tích hợp hoàn chỉnh thành chế độ tự trị `MOTOR_MODE_STEP_TEST` | **100% ĐẠT** |
-| **FR-M10**| Đảo trạng thái pin PE9 đo Jitter vòng lặp bằng Logic Analyzer | Duy trì nguyên vẹn ở đầu hàm `Rte_TimerEvent_10ms()`, jitter $12.7\ \mu\text{s} \le 50\ \mu\text{s}$ | **100% ĐẠT** |
-| **NFR-1** | Jitter vòng lặp thời gian thực $\le 50\ \mu\text{s}$ | Jitter duy trì ổn định $\approx 12.7\ \mu\text{s}$, cách ly hoàn toàn với RPMsg worker | **100% ĐẠT** |
-| **NFR-2** | Tần số điều khiển $T_s = 10\text{ ms}$ cố định | Cố định bởi phần cứng định thời Zephyr Kernel Timer | **100% ĐẠT** |
+| **FR-M1** | Read encoder via Timer Polling/ICU every 10ms | Completed in Week 2, continuously integrated into RTE | **100% MET** |
+| **FR-M2** | Generate 20 kHz PWM (TIM4_CH3, PD14) & L298N direction | Completed in Week 2, controlled by RTE scheduler | **100% MET** |
+| **FR-M3** | Discrete 10ms PID algorithm with Anti-windup Clamping | Integrated into `MOTOR_MODE_CLOSED_LOOP` with bumpless transfer | **100% MET** |
+| **FR-M7** | Autonomous active emergency braking (Duty=0%, IN1=1, IN2=1) on safety fault | Integrated into `MOTOR_MODE_FAULT` and `EmergencyStop` flag in RTE | **100% MET** |
+| **FR-M8** | Telemetry framing/parsing and inter-core command handling via RPMsg/OpenAMP | Upgraded `$TELEM` frame with `MODE`; added `MODE`, `STEP`, `STATUS` commands | **100% MET** |
+| **FR-M9** | Open-loop step response test mode for MATLAB | Fully implemented as autonomous `MOTOR_MODE_STEP_TEST` mode | **100% MET** |
+| **FR-M10**| Toggle PE9 pin to measure loop jitter via Logic Analyzer | Preserved intact at start of `Rte_TimerEvent_10ms()`, jitter $12.7\ \mu\text{s} \le 50\ \mu\text{s}$ | **100% MET** |
+| **NFR-1** | Real-time control loop jitter $\le 50\ \mu\text{s}$ | Jitter stably maintained at $\approx 12.7\ \mu\text{s}$, isolated from RPMsg worker | **100% MET** |
+| **NFR-2** | Fixed control cycle $T_s = 10\text{ ms}$ | Deterministically governed by hardware Zephyr Kernel Timer | **100% MET** |
 
 ---
 
-## 8. Kế Hoạch Triển Khai Tuần 5 (Week 5 Roadmap)
+## 8. Week 5 Implementation Roadmap
 
-Với việc hoàn thiện trọn vẹn kiến trúc AUTOSAR và chế độ `MOTOR_MODE_STEP_TEST` trong Tuần 4, hệ thống đã sẵn sàng cho **Tuần 5: Thu thập dữ liệu đáp ứng bước nhảy mở vòng (Open-loop Step Test) qua A7 lưu file CSV**:
-1. **Phát triển Script Thu Thập Dữ Liệu Tự Động Trên Cortex-A7 (`gateway_a7/step_logger.py`):**
-   - Lắng nghe luồng dữ liệu thời gian thực từ `/dev/ttyRPMSG0`.
-   - Kiểm tra mã CRC-16 của từng frame và bóc tách các trường: Thời gian $t$ (ms), Duty kích thích $u(t)$ (%), Vận tốc đo được $\omega(t)$ (RPM), Số xung tích lũy $Cnt$.
-   - Tự động phát lệnh kích thích `STEP 0 60 3000` (hoặc các biên độ bước nhảy khác nhau: 40%, 60%, 80%).
-   - Xuất dữ liệu ra file định dạng bảng `motor_step_response.csv`.
-2. **Kiểm Tra Tính Nhất Quán Của Dữ Liệu Thực Nghiệm:**
-   - Thực hiện nhiều lần thử nghiệm bước nhảy (Multiple Runs) để đánh giá độ phi tuyến, vùng chết tĩnh (*Deadband*) và độ nhiễu của cảm biến Hall Encoder.
-   - Sẵn sàng cung cấp tập dữ liệu CSV sạch cho công đoạn nhận dạng mô hình toán học trên **MATLAB System Identification Toolbox** ở **Tuần 6**.
+With the complete realization of the AUTOSAR architecture and `MOTOR_MODE_STEP_TEST` in Week 4, the system is fully prepared for **Week 5: Open-loop step response data acquisition via A7 saved to CSV files**:
+1. **Develop Automated Data Logging Script on Cortex-A7 (`gateway_a7/step_logger.py`):**
+   - Ingest real-time telemetry stream from `/dev/ttyRPMSG0`.
+   - Validate CRC-16 checksum of each frame and parse fields: Timestamp $t$ (ms), Excitation Duty $u(t)$ (%), Measured Speed $\omega(t)$ (RPM), Cumulative pulse count $Cnt$.
+   - Automatically dispatch step commands `STEP 0 60 3000` (along with multiple excitation amplitudes: 40%, 60%, 80%).
+   - Export dataset to structured tabular file `motor_step_response.csv`.
+2. **Empirical Data Consistency Verification:**
+   - Execute multiple experimental step runs to characterize system non-linearities, static friction deadband, and Hall encoder noise floor.
+   - Deliver clean CSV datasets ready for mathematical transfer function identification using the **MATLAB System Identification Toolbox** in **Week 6**.
