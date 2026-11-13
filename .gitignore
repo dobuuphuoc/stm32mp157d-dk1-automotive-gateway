@@ -1,0 +1,56 @@
+# =============================================================================
+# Git Ignore - Automotive Domain Gateway & Motor Controller (STM32MP157)
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# C / C++ / Embedded Build Output
+build/
+bin/
+obj/
+*.o
+*.obj
+*.elf
+*.bin
+*.hex
+*.axf
+*.map
+*.d
+
+# CMake Artifacts
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor & IDE configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Local SQLite databases and logs
+*.db-wal
+*.db-shm
+telemetry.db
+*.log
