@@ -9,6 +9,13 @@
 [![Video Demo](https://img.shields.io/badge/Video%20Demo-Google%20Drive-EA4335.svg?logo=googledrive&logoColor=white)](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+**PROJECT:** Automotive Domain Gateway & Real-Time Motor Controller on STM32MP157D-DK1  
+**ARCHITECTURE:** AMP (Asymmetric Multi-Processing) — Cortex-M4 Zephyr RTOS (AUTOSAR Classic) + Cortex-A7 OpenSTLinux
+
+> **DEMO VIDEO (Full HD Hardware Results):** https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view
+>
+> [![Watch Hardware Demo on Google Drive](https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_Watch_Hardware_Demo_Video-Google_Drive_Full_HD-EA4335?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view)
+
 An enterprise-grade, automotive-compliant **Domain Gateway and Hard Real-Time Powertrain Controller** implemented on the **STMicroelectronics STM32MP157D-DK1** Heterogeneous Multi-Core SoC (Dual ARM Cortex-A7 @ 800 MHz + ARM Cortex-M4 @ 209 MHz). 
 
 This project bridges the gap between **Hard Real-Time Motor Actuation** (under strict **AUTOSAR Classic** layering on **Zephyr RTOS**) and **Connected Cloud Telematics / Digital Cockpit** (under **OpenSTLinux**, native **SQLite3 WAL Blackbox**, **MQTT IoT Gateway**, and a **PyQt5 Virtual Cockpit**), featuring microsecond-level hardware jitter profiling and verified core isolation.
