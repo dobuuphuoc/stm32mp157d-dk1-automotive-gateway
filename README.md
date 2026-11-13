@@ -4,8 +4,9 @@
 [![RTOS](https://img.shields.io/badge/RTOS-Zephyr%20v4.5.99-green.svg)](https://zephyrproject.org/)
 [![OS](https://img.shields.io/badge/OS-OpenSTLinux%205.0.17-orange.svg)](https://wiki.st.com/stm32mpu/wiki/OpenSTLinux)
 [![Architecture](https://img.shields.io/badge/Architecture-AUTOSAR%20Classic-red.svg)](https://www.autosar.org/)
-[![Safety](https://img.shields.io/badge/Safety-ISO%2026262%20Fail--Safe-brightgreen.svg)](#7-active-safety-architecture-iso-26262)
-[![Control](https://img.shields.io/badge/Control-MATLAB%20System%20ID%20(80.95%25)-purple.svg)](#5-matlab-system-identification--discrete-pid)
+[![Safety](https://img.shields.io/badge/Safety-ISO%2026262%20Fail--Safe-brightgreen.svg)](#3-emergency-brake-shutdown-nfr-2)
+[![Control](https://img.shields.io/badge/Control-MATLAB%20System%20ID%20(80.95%25)-purple.svg)](#1-plant-transfer-function-estimation)
+[![Video Demo](https://img.shields.io/badge/Video%20Demo-Google%20Drive-EA4335.svg?logo=googledrive&logoColor=white)](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 An enterprise-grade, automotive-compliant **Domain Gateway and Hard Real-Time Powertrain Controller** implemented on the **STMicroelectronics STM32MP157D-DK1** Heterogeneous Multi-Core SoC (Dual ARM Cortex-A7 @ 800 MHz + ARM Cortex-M4 @ 209 MHz). 
@@ -314,13 +315,19 @@ python3 gateway_a7/dashboard/qt_dashboard.py
 
 ## 🎥 Demonstration Video
 
-A comprehensive Full HD video demonstration of the live hardware setup is included:
-* **Video Path:** [**docs/video_demo/demo.mp4**](docs/video_demo/demo.mp4) *(~29.6 MB, Full HD 1080p)*
-* **Demonstrated Scenarios:**
-  1. Boot sequence and remoteproc IPC bring-up.
-  2. Smooth closed-loop PID velocity tracking at 8, 10, and 12 RPM ($e_{ss} = 0.00\text{ RPM}$).
-  3. Real-time PIR obstacle detection triggering the animated radar pulse and sub-millisecond E-Stop brake.
-  4. Core isolation verification: Motor and safety loop surviving an abrupt HMI crash.
+Watch the live end-to-end hardware demonstration directly on Google Drive or access the Full HD recording in this repository:
+
+[![Watch Hardware Demo on Google Drive](https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_Watch_Hardware_Demo_Video-Google_Drive_Full_HD-EA4335?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view)
+
+* **Stream Online:** [**demo.mp4 — Google Drive**](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view)
+* **Local Repository File:** [**`docs/video_demo/demo.mp4`**](docs/video_demo/demo.mp4) *(~29.6 MB, Full HD 1080p)*
+
+| # | Demonstrated Scenario | Subsystem Verified | Observed Hardware Result |
+| :-: | :--- | :--- | :--- |
+| **1** | **Boot & IPC Bring-Up** | Cortex-A7 `remoteproc0` & OpenAMP RPMsg | Cortex-M4 loads cleanly and streams 100% CRC-16 validated telemetry to Virtual Cockpit |
+| **2** | **Closed-Loop PID Tracking** | `Swc_MotorControl` ($10\text{ ms}$ PI + Anti-Windup) | Smooth speed tracking at 8, 10, and 12 RPM ($e_{ss} = 0.00\text{ RPM}$, $0\%$ overshoot) |
+| **3** | **PIR Obstacle E-Stop** | `Swc_SafetyManager` (ISO 26262 Interlock) | Forward radar turns crimson red on Cockpit; PWM cuts off to $0\text{V}$ in $< 0.05\text{ ms}$ |
+| **4** | **Crash Core Isolation** | Heterogeneous Domain Separation (**NFR-4**) | Cortex-M4 sustains PID loop and triggers autonomous PIR braking even after HMI crash |
 
 ---
 
