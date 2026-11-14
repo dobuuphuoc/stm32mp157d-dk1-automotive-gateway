@@ -67,7 +67,7 @@ typedef struct {
 typedef enum {
     SAFETY_OK           = 0u,
     SAFETY_FAULT_PIR    = 1u, /* Obstacle/Human detected in motion zone */
-    SAFETY_FAULT_CRASH  = 2u, /* High vibration / collision shock (>2.5g) */
+    SAFETY_FAULT_CRASH  = 2u, /* High vibration / collision shock (>=3.5g) */
     SAFETY_FAULT_WDG    = 3u, /* IPC Heartbeat Watchdog Timeout (>1.0s) */
     SAFETY_FAULT_MANUAL = 4u  /* Manual E-Stop command from Linux */
 } Safety_FaultReasonType;

@@ -37,8 +37,9 @@
    - 4.3. OpenAMP RPMsg IPC Round-Trip Latency Benchmark (NFR-3)
    - 4.4. Verification of Domain Independence and Survival Under Linux Crash (NFR-4)
    - 4.5. Evaluation of Velocity Tracking Quality and Steady-State PID Accuracy (NFR-5)
-   - 4.6. Master Verification Matrix
-   - 4.7. Comprehensive Hardware Experimental Demo Video
+   - 4.6. Automated Host Unit Test Suite & Continuous Integration (CI)
+   - 4.7. Master Verification Matrix
+   - 4.8. Comprehensive Hardware Experimental Demo Video
 5. **CHAPTER 5: CONCLUSION & FUTURE WORK**
    - 5.1. Key Technical Contributions
    - 5.2. Future Work
@@ -158,9 +159,9 @@ To achieve strict physical segregation of concerns:
 │   ┌───────────────────────────────────────▼────────────────────────────────────────┐   │
 │   │                   BASIC SOFTWARE & DRIVERS (BSW / MCAL / CDD)                  │   │
 │   │                                                                                │   │
-│   │   [Mcal_Pwm]      [Mcal_Icu]       [Mcal_Dio]      [Cdd_L298n]    [Cdd_Ipc]    │   │
-│   │   - TIM4_CH3      - Quad Encoder   - PE7/8/9/10    - H-Bridge     - OpenAMP    │   │
-│   │   - 20 kHz Carrier- 514.8 PPR QDEC - High-speed    - Active Brake - CRC-16     │   │
+│   │   [Mcal_Pwm]  [Mcal_Icu]  [Mcal_Adc]   [Mcal_Dio]  [Cdd_L298n]  [Cdd_Ipc]      │   │
+│   │   - TIM4_CH3  - Quad Enc  - PF14/13/12 - PE7..PE10 - H-Bridge   - OpenAMP      │   │
+│   │   - 20kHz PWM - 514.8 PPR - 12-bit ADC - GPIO I/O  - Dyn Brake  - CRC-16       │   │
 │   └────────────────────────────────────────────────────────────────────────────────┘   │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -177,7 +178,7 @@ To decouple control algorithms from the underlying STM32 silicon, the entire Cor
    * `Swc_SafetyManager`: Evaluates safety assertions and arbitrates emergency stop conditions.
 2. **Runtime Environment (RTE):** Acts as the central communication and scheduling dispatcher via standardized RTE Ports (`Rte_Read()` and `Rte_Write()`). The RTE enforces a deterministic control loop at $T_s = 10\text{ ms}$ ($100\text{ Hz}$) synchronized via Zephyr RTOS `k_timer` and `k_sem` primitives.
 3. **Basic Software & Drivers (BSW / MCAL / CDD):** Directly interfaces with microcontroller peripherals:
-   * **MCAL (Microcontroller Abstraction Layer):** `Mcal_Pwm` (generates $20\text{ kHz}$ carrier via Timer 4), `Mcal_Icu` (decodes dual-channel Hall encoder pulses), `Mcal_Dio` (high-speed GPIO manipulation).
+   * **MCAL (Microcontroller Abstraction Layer):** `Mcal_Pwm` (generates $20\text{ kHz}$ carrier via Timer 4), `Mcal_Icu` (decodes dual-channel Hall encoder pulses), `Mcal_Adc` (`PF14/PF13/PF12` 12-bit ADC for GY-61 tri-axis analog accelerometer sampling), `Mcal_Dio` (high-speed GPIO manipulation).
    * **CDD (Complex Device Drivers):** `Cdd_L298n` (controls full H-Bridge power stage with active dynamic braking), `Cdd_Ipc` (handles OpenAMP RPMsg framing and CRC-16 computation with Cortex-A7).
 
 ---
@@ -219,14 +220,14 @@ Aligned with automotive functional safety guidelines (**ISO 26262**), the system
 * **Pillar 1 - Frontal Obstacle Detection (PIR Obstacle):** An HC-SR501 pyroelectric infrared sensor monitors a $120^\circ$ forward detection cone. Upon detecting an obstacle or pedestrian breaching the safety perimeter, emergency braking is immediately asserted.
 * **Pillar 2 - Severe Impact & Roll Detection (Crash Shock Acceleration):** A GY-61 tri-axis analog accelerometer continuously evaluates the aggregate acceleration vector magnitude:
   $$|a| = \sqrt{a_x^2 + a_y^2 + a_z^2}$$
-  *Under severe impact or rollover events ($|a| > 2.5g \div 3.5g$), the safety manager immediately triggers emergency actuator cutoff.*
+  *Under severe impact or rollover events ($|a| \ge 3.5g$), the safety manager immediately triggers emergency actuator cutoff.*
 * **Pillar 3 - Telematics Heartbeat Watchdog ($1.0\text{ s}$ Timeout):** The Cortex-A7 Linux gateway must transmit an `HB` heartbeat packet periodically every $500\text{ ms}$. If the Linux host hangs or fails to refresh within a $1.0\text{ s}$ window, Cortex-M4 detects loss of supervisory control and executes autonomous failsafe braking.
 
 ---
 
 ### 3.5. OpenAMP RPMsg Inter-Processor Communication with CRC-16 Integrity Verification
 * **OpenAMP RPMsg Channel (`/dev/ttyRPMSG0`):** Operates over virtual TTY at $115200\text{ bps}$, utilizing an automotive framing protocol protected by **CRC-16-CCITT** polynomial checksums appended to every frame (`$TELEM,...*CRC`). Any frame with a single-bit corruption is discarded immediately.
-* **SQLite3 Event Blackbox Recorder:** Leverages the native `/usr/bin/sqlite3` binary on OpenSTLinux configured with **Write-Ahead Logging (WAL)** mode. Critical fault events (`$FAULT`) and operating metrics are committed atomically to `/home/root/telemetry.db`, ensuring tamper-proof persistence and zero database corruption under abrupt power loss.
+* **SQLite3 Event Blackbox Recorder:** Leverages Python's native `sqlite3` library in **Write-Ahead Logging (WAL)** mode with parameterized queries and batched commits. Critical fault events (`$FAULT`) and operating metrics are committed atomically to `/home/root/telemetry.db`, ensuring tamper-proof persistence, high throughput, and zero database corruption under abrupt power loss.
 * **IoT MQTT Telematics Gateway:** Serializes real-time vehicle state metrics into standardized JSON payloads and publishes them to the cloud telemetry broker (`automotive/ecu/telemetry`).
 
 ---
@@ -321,7 +322,16 @@ Executed an automated benchmark suite performing $100$ sequential `STATUS` query
 
 ---
 
-### 4.6. Master Verification Matrix
+### 4.6. Automated Host Unit Test Suite and Continuous Integration (CI)
+
+To validate control algorithms and gateway communications prior to hardware flashing, the project integrates an automated host-based test suite executed via **GitHub Actions CI** ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)):
+* **Python Gateway Daemon Unit Tests (`tests/test_gateway_daemon.py`):** Features **23 `pytest` cases** covering CRC-16-CCITT checksum computation and single-bit corruption detection, NMEA frame parsing (`$TELEM` and `$FAULT`), state transitions, SQLite database persistence in WAL mode with SQL-injection prevention, and MQTT telemetry/command dispatching.
+* **Cortex-M4 ASW C99 Host Unit Tests (`tests/test_m4_asw.c`):** Compiled natively on host under strict GCC warnings (`-std=c99 -Wall -Wextra -Werror`). Exercises pure AUTOSAR software components: `Swc_MotorControl` (discrete PI equations and anti-windup clamping to $85.0\%$), `Swc_SafetyManager` (PIR intrusion tripping, $\ge 3.5g$ crash shock detection, and heartbeat timeout interlock), and `Swc_SensorManager`.
+* **Continuous Integration Workflow:** Automatically triggers on every push and pull request, executing Python script compilation, shell linting (`bash -n`), `pytest`, and C99 unit test binaries to ensure zero regression across branches.
+
+---
+
+### 4.7. Master Verification Matrix
 
 | Group | Requirement ID | Specification Target | Empirical Hardware Result | Compliance Status |
 | :---: | :---: | :--- | :--- | :---: |
@@ -336,11 +346,10 @@ Executed an automated benchmark suite performing $100$ sequential `STATUS` query
 
 ---
 
-### 4.7. Comprehensive Hardware Experimental Demo Video
+### 4.8. Comprehensive Hardware Experimental Demo Video
 
 The complete end-to-end hardware validation has been recorded and documented:
-* 🎥 **Local Repository File:** [**`video_demo/demo.mp4`**](video_demo/demo.mp4) *(~29.6 MB, Full HD 1080p)*
-* 🌐 **Online Video Mirror:** [**Google Drive Video Mirror**](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view)
+* 🎥 **Stream / Download:** [**demo.mp4 — Google Drive**](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view) *(Full HD 1080p, ~29.6 MB)*
 
 #### Key Technical Scenarios Demonstrated in the Video:
 1. **System Bring-Up & Heterogeneous IPC:** STM32MP157D-DK1 boots OpenSTLinux, initializes Cortex-M4 firmware via `remoteproc`, launches `gateway_daemon.py`, and establishes OpenAMP RPMsg communication with the **Qt Digital Virtual Cockpit**.

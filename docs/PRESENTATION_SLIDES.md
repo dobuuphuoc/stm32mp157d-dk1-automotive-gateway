@@ -159,7 +159,7 @@ Distinguished members of the Evaluation Committee, today I would like to present
 ┌──────────────────┐       ┌──────────────────┐       ┌──────────────────┐
 │  PILLAR 1: PIR   │       │ PILLAR 2: GY-61  │       │  PILLAR 3: WDG   │
 │ Frontal Obstacle │       │Crash & Rollover  │       │ Linux Heartbeat  │
-│ 120° Scan Angle  │       │ |a| > 2.5g-3.5g  │       │  Timeout > 1.0s  │
+│ 120° Scan Angle  │       │   |a| >= 3.5g    │       │  Timeout > 1.0s  │
 └────────┬─────────┘       └────────┬─────────┘       └────────┬─────────┘
          │                          │                          │
          └──────────────────────────┼──────────────────────────┘
@@ -305,8 +305,7 @@ $$\text{Hardware Jitter } \Delta T = |10.006375\text{ ms} - 10.000000\text{ ms}|
 
 ### Experimental Demonstration on STM32MP157D-DK1 Platform
 
-* **Video File Link (Local):** [**video_demo/demo.mp4**](video_demo/demo.mp4) *(Full HD 1080p, ~29.6 MB)*
-* **Online Mirror (Google Drive):** [**Google Drive Video Link**](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view)
+* **Demonstration Video:** [**demo.mp4 — Google Drive**](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view) *(Full HD 1080p, ~29.6 MB)*
 * **4 Key Demonstration Scenarios:**
   1. **System Boot & Firmware Bring-Up (IPC Bring-Up):** Cortex-A7 boots Linux, loads Cortex-M4 firmware via `remoteproc0`, establishes RPMsg channel with Virtual Cockpit UI.
   2. **10ms Closed-Loop PID Velocity Tracking (NFR-5):** Electronic PRND shifter engages `D (PID)`, setpoints stepped to 8, 10, 12 RPM, speedometer sweeps smoothly at $40\text{ FPS}$, steady-state error $e_{ss} = 0.00\text{ RPM}$.

@@ -284,4 +284,4 @@ Week 12-13: Comprehensive testing, performance evaluation, verify independence d
 | 5 | **Control Design Tools** | ✅ **Licensed** | **MATLAB + System Identification Toolbox + Control System Toolbox**. |
 | 6 | **Motor Specifications** | ✅ **Confirmed** | **JGA25-370-46.8K** (Gear ratio **46.8:1**, No-load speed 130 RPM @ 12V). |
 | 7 | **Encoder Resolution** | ✅ **Confirmed** | Magnetic disc **11 PPR** ($514.8\text{ PPR}$ output shaft, $2059.2\text{ CPR}$ in 4x mode). |
-| 8 | **Empirical Safety Thresholds** | ❓ **Pending Testing** | Determine GY-61 vibration thresholds and heartbeat timeout during Week 8. |
+| 8 | **Empirical Safety Thresholds** | ✅ **3.5g (Verified via Mcal_Adc & ASW Unit Tests)** | Determine GY-61 vibration thresholds ($\ge 3.5g$) and heartbeat timeout ($1.0\text{ s}$). |
