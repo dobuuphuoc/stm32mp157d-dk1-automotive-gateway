@@ -6,6 +6,7 @@
 [![Architecture](https://img.shields.io/badge/Architecture-AUTOSAR%20Classic-red.svg)](https://www.autosar.org/)
 [![Safety](https://img.shields.io/badge/Safety-ISO%2026262%20Fail--Safe-brightgreen.svg)](#3-emergency-brake-shutdown-nfr-2)
 [![Control](https://img.shields.io/badge/Control-MATLAB%20System%20ID%20(80.95%25)-purple.svg)](#1-plant-transfer-function-estimation)
+[![CI Status](https://github.com/dobuuphuoc/stm32mp157d-dk1-automotive-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/dobuuphuoc/stm32mp157d-dk1-automotive-gateway/actions/workflows/ci.yml)
 [![Video Demo](https://img.shields.io/badge/Video%20Demo-Google%20Drive-EA4335.svg?logo=googledrive&logoColor=white)](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -228,12 +229,14 @@ $$\text{Duty}[k] = \text{clamp}(u[k], 0.0\%, 85.0\%)$$
 
 ```
 stm32mp157d-dk1/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                          # Dual-job GitHub Actions CI pipeline (Python & C99 host tests)
 ├── docs/                                   # Complete Technical Documentation & Review Portfolio
 │   ├── assets/                             # High-resolution Logic Analyzer & Benchmark Traces
 │   │   ├── week11/                         # Jitter, PWM 20kHz, and E-Stop cutoff captures
 │   │   └── week12/                         # RPMsg IPC round-trip latency captures
-│   ├── video_demo/
-│   │   └── demo.mp4                        # Full HD Hardware Demonstration Video (~29.6 MB)
+│   ├── video_demo/                         # Hardware Demonstration Video directory (streamed on Google Drive)
 │   ├── week1_review.md ... week12_review.md# 12 Weekly Milestone Deliverables & Technical Reviews
 │   ├── FINAL_PROJECT_REPORT.md             # Comprehensive Academic Final Report (34+ KB)
 │   ├── PRESENTATION_SLIDES.md              # Marp-compatible Presentation Slides with Speaker Notes
@@ -250,7 +253,7 @@ stm32mp157d-dk1/
 │   └── step_logger.py                      # Open-loop step test data logger
 ├── motor_gateway_m4/                       # Cortex-M4 Zephyr RTOS AUTOSAR Classic Firmware
 │   ├── boards/
-│   │   └── stm32mp157c_dk2.overlay         # Devicetree overlay for PWM, GPIO, and Encoder
+│   │   └── stm32mp157c_dk2.overlay         # Devicetree overlay for PWM, GPIO, ADC, and Encoder
 │   ├── src/
 │   │   ├── asw/                            # Application Software Layer (Hardware-Independent)
 │   │   │   ├── Swc_MotorControl.c/.h       # 10ms Discrete PID loop & Anti-Windup clamping
@@ -259,13 +262,16 @@ stm32mp157d-dk1/
 │   │   ├── rte/                            # Runtime Environment Layer
 │   │   │   └── Rte.c/.h                    # 100 Hz deterministic scheduler & RTE port mapping
 │   │   ├── bsw/                            # Basic Software Layer
-│   │   │   ├── mcal/                       # Microcontroller Abstraction Layer (Dio, Pwm, Icu)
-│   │   │   └── cdd/                        # Complex Device Drivers (L298N H-Bridge, IPC RPMsg)
+│   │   │   ├── mcal/                       # Microcontroller Abstraction Layer (Dio, Pwm, Icu, Adc)
+│   │   │   └── cdd/                        # Complex Device Drivers (L298N H-Bridge, IPC RPMsg, DHT11)
 │   │   ├── std_types.h                     # AUTOSAR standard platform types
 │   │   └── main.c                          # ECU State Manager (EcuM) & deterministic task loop
 │   ├── CMakeLists.txt                      # Zephyr build configuration
 │   ├── prj.conf                            # Zephyr kernel configuration (OpenAMP, IPC, Timers)
 │   └── deploy.sh                           # Firmware packaging and remoteproc deployment script
+├── tests/                                  # Automated Host Verification Test Suite
+│   ├── test_gateway_daemon.py              # Pytest suite for Linux gateway & SQLite WAL pipeline (23 tests)
+│   └── test_m4_asw.c                       # C99 host tests for Cortex-M4 AUTOSAR ASW logic (5 tests)
 ├── requirement/
 │   └── requirements_stm32mp157_motor_gateway.md # System specification and requirements tracking
 ├── generate_pptx.py                        # Automated script generating the PowerPoint slide deck
@@ -320,14 +326,37 @@ python3 gateway_a7/dashboard/qt_dashboard.py
 
 ---
 
+## 🧪 Automated Unit Testing & CI (Host Verification)
+
+The project includes an enterprise-grade automated test harness running completely on the host without target hardware, integrated into **GitHub Actions CI**:
+
+### 1. Linux Gateway & Telemetry Pipeline (`pytest` — 23 test cases)
+```bash
+pytest -v tests/test_gateway_daemon.py
+```
+*(Covers CRC-16-CCITT verification, SQLite WAL batching & SQL injection protection, bidirectional raw-socket MQTT client, and `$TELEM`/`$FAULT` parser + TCP server bridge).*
+
+### 2. Cortex-M4 AUTOSAR ASW Layer (`gcc` C99 Host Tests)
+```bash
+gcc -std=c99 -Wall -Wextra -Werror \
+  -Imotor_gateway_m4/src -Imotor_gateway_m4/src/rte -Imotor_gateway_m4/src/asw \
+  tests/test_m4_asw.c \
+  motor_gateway_m4/src/asw/Swc_MotorControl.c \
+  motor_gateway_m4/src/asw/Swc_SafetyManager.c \
+  motor_gateway_m4/src/asw/Swc_SensorManager.c \
+  -lm -o tests/test_m4_asw && ./tests/test_m4_asw
+```
+*(Mocks the AUTOSAR RTE ports to verify `Swc_SensorManager`, `Swc_SafetyManager` 3.5g crash / PIR / Manual vs Watchdog E-Stop classification, and `Swc_MotorControl` bidirectional PI control & overshoot deceleration).*
+
+---
+
 ## 🎥 Demonstration Video
 
-Watch the live end-to-end hardware demonstration directly on Google Drive or access the Full HD recording in this repository:
+Watch the live end-to-end hardware demonstration directly on Google Drive:
 
 [![Watch Hardware Demo on Google Drive](https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_Watch_Hardware_Demo_Video-Google_Drive_Full_HD-EA4335?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view)
 
-* **Stream Online:** [**demo.mp4 — Google Drive**](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view)
-* **Local Repository File:** [**`docs/video_demo/demo.mp4`**](docs/video_demo/demo.mp4) *(~29.6 MB, Full HD 1080p)*
+* **Stream / Download:** [**demo.mp4 — Google Drive**](https://drive.google.com/file/d/17d-vMCIrHitZAmdeHGaxqPASsOAnrs6g/view) *(Full HD 1080p, ~29.6 MB)*
 
 | # | Demonstrated Scenario | Subsystem Verified | Observed Hardware Result |
 | :-: | :--- | :--- | :--- |

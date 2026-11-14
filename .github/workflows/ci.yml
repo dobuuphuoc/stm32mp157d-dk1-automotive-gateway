@@ -1,0 +1,47 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  ci:
+    name: Build, Lint & Host Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      - name: Check syntax of Python and Shell scripts
+        run: |
+          python -m py_compile gateway_a7/gateway_daemon.py gateway_a7/dashboard/qt_dashboard.py
+          bash -n gateway_a7/ipc_ctl.sh
+
+      - name: Run Python unit tests
+        run: |
+          pytest -v tests/test_gateway_daemon.py
+
+      - name: Compile and run Cortex-M4 ASW C host unit tests
+        run: |
+          gcc -std=c99 -Wall -Wextra -Werror \
+            -Imotor_gateway_m4/src \
+            -Imotor_gateway_m4/src/rte \
+            -Imotor_gateway_m4/src/asw \
+            tests/test_m4_asw.c \
+            motor_gateway_m4/src/asw/Swc_MotorControl.c \
+            motor_gateway_m4/src/asw/Swc_SafetyManager.c \
+            motor_gateway_m4/src/asw/Swc_SensorManager.c \
+            -lm -o /tmp/test_m4_asw && /tmp/test_m4_asw
