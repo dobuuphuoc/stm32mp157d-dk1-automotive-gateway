@@ -3,12 +3,19 @@
  * Device Tree Overlay for STM32MP157C-DK2 / STM32MP157D-DK1 Cortex-M4
  *
  * Pin assignments:
- * - PE7:  Arduino D0  - JGA25-370 Encoder Channel A (GPIO interrupt, pull-up)
- * - PE8:  Arduino D1  - JGA25-370 Encoder Channel B (GPIO interrupt, pull-up)
+ * - PE7:  Arduino D0  - JGA25-370 Encoder Channel A (GPIO interrupt / poll fallback)
+ * - PE8:  Arduino D1  - JGA25-370 Encoder Channel B (GPIO interrupt / poll fallback)
+ * - PC6:  CN2 Pin 13  - TIM3_CH1 Hardware Quadrature Encoder Channel A (QDEC)
+ * - PC7:  CN2 Pin 15  - TIM3_CH2 Hardware Quadrature Encoder Channel B (QDEC)
  * - PE9:  Arduino D6  - Test Pin for Logic Analyzer jitter measurement (FR-M10)
  * - PE10: Arduino D4  - L298N IN1 direction pin
  * - PH6:  Arduino D9  - L298N IN2 direction pin
  * - PD14: Arduino D3  - L298N ENA PWM pin (TIM4_CH3, 20 kHz) [CN14 Pin 4]
+ * - PE12: Arduino D13 - DHT11 1-Wire Temperature/Humidity sensor (FR-M8)
+ * - PE13: Arduino D12 - HC-SR501 PIR Motion Sensor input (FR-M6)
+ * - PF14: Arduino A4  - GY-61 Accelerometer X-axis analog input
+ * - PF13: Arduino A3  - GY-61 Accelerometer Y-axis analog input
+ * - PF12: Arduino A5  - GY-61 Accelerometer Z-axis analog input (FR-M7)
  * - Board Status LED: referenced via default 'led0' alias from board dts
  */
 
@@ -47,8 +54,14 @@
 		test-gpios  = <&gpioe 9 GPIO_ACTIVE_HIGH>;
 		in1-gpios   = <&gpioe 10 GPIO_ACTIVE_HIGH>;
 		in2-gpios   = <&gpioh 6 GPIO_ACTIVE_HIGH>;
+		pir-gpios   = <&gpioe 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+		dht11-gpios = <&gpioe 12 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
 		pwms        = <&pwm4 3 PWM_KHZ(20) PWM_POLARITY_NORMAL>;
 	};
+};
+
+&gpioc {
+	status = "okay";
 };
 
 &gpiod {
@@ -56,6 +69,10 @@
 };
 
 &gpioe {
+	status = "okay";
+};
+
+&gpiof {
 	status = "okay";
 };
 

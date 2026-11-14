@@ -1,9 +1,7 @@
 #include "Swc_SafetyManager.h"
 #include "Rte.h"
-#include "Cdd_Ipc.h"
-#include "Cdd_L298n.h"
 
-#define SAFETY_CRASH_THRESHOLD_G   2.5f
+#define SAFETY_CRASH_THRESHOLD_G   3.5f
 
 static Safety_FaultReasonType s_current_fault = SAFETY_OK;
 static boolean s_estop_active = FALSE;
@@ -17,8 +15,8 @@ static void Safety_TriggerEStop(Safety_FaultReasonType reason)
     (void)Rte_Write_ppSafetyFault(reason);
     (void)Rte_Write_ppMotorMode(MOTOR_MODE_FAULT);
     (void)Rte_Write_ppDuty_percentage(0.0f);
-    Cdd_L298n_EmergencyStop();                                   /* < 5 ms (NFR-2) */
-    Cdd_Ipc_SendFaultNotice(Swc_SafetyManager_GetFaultString(reason)); /* non-blocking */
+    (void)Rte_Call_rpActuator_EmergencyStop();                                   /* < 5 ms (NFR-2) */
+    (void)Rte_Call_rpIpc_SendFaultNotice(Swc_SafetyManager_GetFaultString(reason)); /* non-blocking */
 }
 
 void Swc_SafetyManager_Init(void)
@@ -38,11 +36,12 @@ void Runnable_SafetyCheck_10ms(void)
     if (s_estop_active != FALSE) {
         (void)Rte_Write_ppEmergencyStop(TRUE);
         (void)Rte_Write_ppMotorMode(MOTOR_MODE_FAULT);
-        Cdd_L298n_EmergencyStop();
+        (void)Rte_Call_rpActuator_EmergencyStop();
         return;
     }
 
-    MotorControl_ModeType mode = Rte_Get_MotorMode();
+    MotorControl_ModeType mode = MOTOR_MODE_STOPPED;
+    (void)Rte_Read_rpMotorMode(&mode);
     boolean running = ((mode == MOTOR_MODE_OPEN_LOOP) || (mode == MOTOR_MODE_CLOSED_LOOP) ||
                        (mode == MOTOR_MODE_STEP_TEST)) ? TRUE : FALSE;
 
@@ -59,9 +58,16 @@ void Runnable_SafetyCheck_10ms(void)
     }
 
     /* 3. E-Stop requested by BSW (Watchdog timeout or manual ESTOP command) */
-    if (Rte_Get_EmergencyStop() != FALSE) {
-        Safety_TriggerEStop((Rte_Get_MotorMode() == MOTOR_MODE_FAULT && Cdd_Ipc_IsWatchdogEnabled() != FALSE)
-                            ? SAFETY_FAULT_WDG : SAFETY_FAULT_MANUAL);
+    boolean estop = FALSE;
+    (void)Rte_Read_rpEmergencyStop(&estop);
+    if (estop != FALSE) {
+        Safety_FaultReasonType rte_fault = SAFETY_OK;
+        (void)Rte_Read_rpSafetyFault(&rte_fault);
+        if (rte_fault != SAFETY_OK) {
+            Safety_TriggerEStop(rte_fault);
+        } else {
+            Safety_TriggerEStop(SAFETY_FAULT_MANUAL);
+        }
         return;
     }
 }

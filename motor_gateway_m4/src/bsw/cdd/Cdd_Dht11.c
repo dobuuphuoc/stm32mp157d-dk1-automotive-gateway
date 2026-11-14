@@ -11,23 +11,19 @@
  *   - Runs in its own low-priority thread (never inside the 10 ms control task).
  *   - Bit sampling starts right after a 10 ms RTE tick has finished
  *     (Cdd_Dht11_TickSync), so the ~4.5 ms frame fits inside the idle window
- *     and is not preempted by the PID loop. No irq_lock -> PID jitter unaffected.
+ *     and is not preempted by the PID loop.
+ *   - Individual bit measurements are protected with irq_lock/unlock to prevent
+ *     1 kHz timer ISR from stretching a 0 bit into a 1 bit.
  *   - A corrupted frame (checksum error) is simply discarded; last good value is kept.
  */
 #include <zephyr/kernel.h>
-#include <zephyr/drivers/gpio.h>
+#include <zephyr/irq.h>
 #include "Cdd_Dht11.h"
+#include "Mcal_Dio.h"
 
-#define DHT11_PIN             12u
 #define DHT11_PERIOD_MS       2000
 #define DHT11_START_LOW_MS    20
 #define DHT11_BIT_THRESH_US   45u
-
-#if DT_NODE_EXISTS(DT_NODELABEL(gpioe))
-static const struct device *const s_gpio = DEVICE_DT_GET(DT_NODELABEL(gpioe));
-#else
-static const struct device *const s_gpio = NULL;
-#endif
 
 K_SEM_DEFINE(s_dht_tick_sem, 0, 1);
 static Cdd_Dht11_DataType s_dht;
@@ -39,10 +35,10 @@ static inline uint32 Dht_Us(uint32 cycles)
 }
 
 /* Wait while pin == level; returns elapsed us or 0xFFFFFFFF on timeout */
-static uint32 Dht_WaitWhile(int level, uint32 timeout_us)
+static uint32 Dht_WaitWhile(Dio_LevelType level, uint32 timeout_us)
 {
     uint32 t0 = k_cycle_get_32();
-    while (gpio_pin_get(s_gpio, DHT11_PIN) == level) {
+    while (Dio_ReadChannel(DIO_CH_DHT11_PE12) == level) {
         if (Dht_Us(k_cycle_get_32() - t0) > timeout_us) {
             return 0xFFFFFFFFu;
         }
@@ -52,8 +48,8 @@ static uint32 Dht_WaitWhile(int level, uint32 timeout_us)
 
 static boolean Dht_ReadFrame(uint8 out[5])
 {
-    /* 1. Start signal: LOW >= 18 ms */
-    (void)gpio_pin_configure(s_gpio, DHT11_PIN, GPIO_OUTPUT_LOW);
+    /* 1. Start signal: LOW >= 18 ms via MCAL DIO */
+    (void)Dio_SetPinDirection(DIO_CH_DHT11_PE12, TRUE, STD_LOW);
     k_msleep(DHT11_START_LOW_MS);
 
     /* 2. Align with the end of a 10 ms control tick (jitter-free window) */
@@ -62,18 +58,24 @@ static boolean Dht_ReadFrame(uint8 out[5])
         /* RTE not running: proceed anyway */
     }
 
-    /* 3. Release line -> input with pull-up */
-    (void)gpio_pin_configure(s_gpio, DHT11_PIN, GPIO_INPUT | GPIO_PULL_UP);
+    /* 3. Release line -> input with pull-up via MCAL DIO */
+    (void)Dio_SetPinDirection(DIO_CH_DHT11_PE12, FALSE, STD_HIGH);
 
     /* 4. Response: HIGH (release) -> LOW 80us -> HIGH 80us -> LOW (bit 0 start) */
-    if (Dht_WaitWhile(1, 200u) == 0xFFFFFFFFu) { return FALSE; }
-    if (Dht_WaitWhile(0, 120u) == 0xFFFFFFFFu) { return FALSE; }
-    if (Dht_WaitWhile(1, 120u) == 0xFFFFFFFFu) { return FALSE; }
+    if (Dht_WaitWhile(STD_HIGH, 200u) == 0xFFFFFFFFu) { return FALSE; }
+    if (Dht_WaitWhile(STD_LOW, 120u) == 0xFFFFFFFFu) { return FALSE; }
+    if (Dht_WaitWhile(STD_HIGH, 120u) == 0xFFFFFFFFu) { return FALSE; }
 
     /* 5. 40 data bits */
     for (uint8 i = 0u; i < 40u; i++) {
-        if (Dht_WaitWhile(0, 100u) == 0xFFFFFFFFu) { return FALSE; }   /* ~50us LOW */
-        uint32 high_us = Dht_WaitWhile(1, 120u);                         /* 26-70us HIGH */
+        /* Wait for 50us LOW pulse */
+        if (Dht_WaitWhile(STD_LOW, 100u) == 0xFFFFFFFFu) { return FALSE; }
+
+        /* Measure 26-70us HIGH pulse with IRQ disabled to prevent 1 kHz timer ISR stretching */
+        unsigned int irq_key = irq_lock();
+        uint32 high_us = Dht_WaitWhile(STD_HIGH, 120u);
+        irq_unlock(irq_key);
+
         if (high_us == 0xFFFFFFFFu) { return FALSE; }
         out[i / 8u] = (uint8)(out[i / 8u] << 1);
         if (high_us > DHT11_BIT_THRESH_US) {
@@ -93,22 +95,24 @@ static void Cdd_Dht11_Thread(void *p1, void *p2, void *p3)
     k_msleep(1500); /* DHT11 power-up stabilisation (>1 s) */
 
     while (1) {
-        if (s_gpio != NULL && device_is_ready(s_gpio)) {
-            uint8 f[5] = {0u, 0u, 0u, 0u, 0u};
-            if (Dht_ReadFrame(f) != FALSE) {
-                float32 t = (float32)(f[2] & 0x7Fu) + ((float32)(f[3] & 0x7Fu) * 0.1f);
-                if ((f[3] & 0x80u) != 0u) {
-                    t = -t;
-                }
-                s_dht.temperature_c = t;
-                s_dht.humidity_pct = (float32)f[0] + ((float32)f[1] * 0.1f);
-                s_dht.valid = TRUE;
-                s_dht.ok_count++;
-            } else {
-                s_dht.err_count++;
+        uint8 f[5] = {0u, 0u, 0u, 0u, 0u};
+        if (Dht_ReadFrame(f) != FALSE) {
+            float32 t = (float32)(f[2] & 0x7Fu) + ((float32)(f[3] & 0x7Fu) * 0.1f);
+            if ((f[3] & 0x80u) != 0u) {
+                t = -t;
             }
-            (void)gpio_pin_configure(s_gpio, DHT11_PIN, GPIO_INPUT | GPIO_PULL_UP);
+            unsigned int key = irq_lock();
+            s_dht.temperature_c = t;
+            s_dht.humidity_pct = (float32)f[0] + ((float32)f[1] * 0.1f);
+            s_dht.valid = TRUE;
+            s_dht.ok_count++;
+            irq_unlock(key);
+        } else {
+            unsigned int key = irq_lock();
+            s_dht.err_count++;
+            irq_unlock(key);
         }
+        (void)Dio_SetPinDirection(DIO_CH_DHT11_PE12, FALSE, STD_HIGH);
         k_msleep(DHT11_PERIOD_MS);
     }
 }

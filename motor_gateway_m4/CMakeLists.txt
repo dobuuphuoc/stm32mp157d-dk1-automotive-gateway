@@ -15,6 +15,7 @@ target_sources(app PRIVATE
     src/main.c
     src/bsw/mcal/Mcal_Dio.c
     src/bsw/mcal/Mcal_Pwm.c
+    src/bsw/mcal/Mcal_Adc.c
     src/bsw/mcal/Mcal_Icu.c
     src/bsw/cdd/Cdd_L298n.c
     src/bsw/cdd/Cdd_Ipc.c

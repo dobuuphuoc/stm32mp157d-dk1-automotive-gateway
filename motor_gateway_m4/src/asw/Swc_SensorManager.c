@@ -1,5 +1,4 @@
 #include "Swc_SensorManager.h"
-#include "Mcal_Dio.h"
 #include "Rte.h"
 #include <math.h>
 
@@ -20,8 +19,11 @@ void Swc_SensorManager_Init(void)
 
 void Runnable_SensorManager_100ms(void)
 {
-    /* 1. HC-SR501 PIR (PE13) */
-    s_sensor_data.pir_detected = (Dio_ReadChannel(DIO_CH_PIR_PE13) == STD_HIGH) ? TRUE : FALSE;
+    /* 1. HC-SR501 PIR (PE13) via RTE Client-Server port */
+    boolean pir_state = FALSE;
+    if (Rte_Call_rpPirSensor_Read(&pir_state) == E_OK) {
+        s_sensor_data.pir_detected = pir_state;
+    }
 
     /* 2. GY-61 accelerometer (3 x ADC) -> resultant vibration magnitude |a| */
     float32 ax = 0.0f, ay = 0.0f, az = 1.0f;

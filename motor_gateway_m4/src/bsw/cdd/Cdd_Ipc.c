@@ -2,6 +2,7 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/ipm.h>
 #include <zephyr/sys/printk.h>
+#include <zephyr/spinlock.h>
 #include <openamp/open_amp.h>
 #include <metal/alloc.h>
 #include <metal/device.h>
@@ -225,6 +226,7 @@ static void Cdd_Ipc_SendStatus(void)
 }
 
 /* Transmit immediate Safety Fault Notification frame */
+static struct k_spinlock s_ipc_lock;
 static volatile boolean s_fault_pending = FALSE;
 static char s_fault_reason[24];
 
@@ -232,6 +234,7 @@ static char s_fault_reason[24];
 void Cdd_Ipc_SendFaultNotice(const char *reason)
 {
     const char *r = (reason != NULL) ? reason : "UNKNOWN";
+    k_spinlock_key_t key = k_spin_lock(&s_ipc_lock);
     size_t i = 0u;
     while ((r[i] != '\0') && (i < (sizeof(s_fault_reason) - 1u))) {
         s_fault_reason[i] = r[i];
@@ -239,18 +242,26 @@ void Cdd_Ipc_SendFaultNotice(const char *reason)
     }
     s_fault_reason[i] = '\0';
     s_fault_pending = TRUE;
+    k_spin_unlock(&s_ipc_lock, key);
+
     k_sem_give(&s_ipc_sem);
 }
 
 static void Cdd_Ipc_FlushFault(void)
 {
+    k_spinlock_key_t key = k_spin_lock(&s_ipc_lock);
     if ((s_fault_pending == FALSE) || (s_tty_ept.dest_addr == RPMSG_ADDR_ANY)) {
+        k_spin_unlock(&s_ipc_lock, key);
         return;
     }
     s_fault_pending = FALSE;
+    char reason_buf[sizeof(s_fault_reason)];
+    memcpy(reason_buf, s_fault_reason, sizeof(reason_buf));
+    k_spin_unlock(&s_ipc_lock, key);
+
     char payload[48];
     char frame[64];
-    int len = snprintf(payload, sizeof(payload), "$FAULT,REASON=%s", s_fault_reason);
+    int len = snprintf(payload, sizeof(payload), "$FAULT,REASON=%s", reason_buf);
     if (len > 0) {
         uint16 crc = Cdd_Ipc_CalcCrc16((const uint8 *)payload, (uint16)len);
         int frame_len = snprintf(frame, sizeof(frame), "%s*%04X\r\n", payload, crc);
@@ -294,6 +305,7 @@ static void Cdd_Ipc_ProcessCommand(char *cmd)
         Rte_Set_rpTargetSpeed_rpm(0.0f);
         printk("[CDD_IPC] CMD CLEAR: Safety faults reset and motor returned to STOPPED\n");
     } else if (strcmp(cmd, "ESTOP") == 0) {
+        Rte_Set_SafetyFault(SAFETY_FAULT_MANUAL);
         Rte_Set_EmergencyStop(TRUE);
         Rte_Set_MotorMode(MOTOR_MODE_FAULT);
         Rte_Set_TargetDuty_percentage(0.0f);
@@ -544,10 +556,12 @@ void Cdd_Ipc_MainFunction_10ms(void)
         }
         if (s_hb_timeout_10ms >= WDG_TIMEOUT_TICKS) {
             /* Heartbeat lost -> trigger immediate safe stop / fault mode */
+            Rte_Set_SafetyFault(SAFETY_FAULT_WDG);
             Rte_Set_EmergencyStop(TRUE);
             Rte_Set_MotorMode(MOTOR_MODE_FAULT);
             Rte_Set_TargetDuty_percentage(0.0f);
             Rte_Set_rpTargetSpeed_rpm(0.0f);
+            Cdd_Ipc_SendFaultNotice("WATCHDOG_TIMEOUT");
         }
     }
 

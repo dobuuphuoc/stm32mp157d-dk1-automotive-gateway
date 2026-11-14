@@ -27,6 +27,14 @@ Std_ReturnType Rte_Write_ppSensorData(const Sensor_DataType *data);
 Std_ReturnType Rte_Read_rpSafetyFault(Safety_FaultReasonType *fault);
 Std_ReturnType Rte_Write_ppSafetyFault(Safety_FaultReasonType fault);
 
+/* RTE Client-Server ports: sensor drivers & BSW actuators */
+Std_ReturnType Rte_Call_rpEnvSensor_Read(float32 *temp_c, float32 *hum_pct);
+Std_ReturnType Rte_Call_rpAccel_Read(float32 *ax_g, float32 *ay_g, float32 *az_g);
+Std_ReturnType Rte_Call_rpPirSensor_Read(boolean *pir_detected);
+Std_ReturnType Rte_Call_rpActuator_EmergencyStop(void);
+Std_ReturnType Rte_Call_rpIpc_SendFaultNotice(const char *reason);
+void Rte_Get_Dht11Stats(uint32 *ok_cnt, uint32 *err_cnt);
+
 /* RTE BSW-side accessor functions */
 MotorControl_ModeType Rte_Get_MotorMode(void);
 void Rte_Set_MotorMode(MotorControl_ModeType mode);
@@ -44,10 +52,6 @@ boolean Rte_Get_EmergencyStop(void);
 void Rte_Set_EmergencyStop(boolean estop);
 void Rte_Get_SensorData(Sensor_DataType *data);
 Safety_FaultReasonType Rte_Get_SafetyFault(void);
-
-/* RTE Client-Server ports: sensor drivers */
-Std_ReturnType Rte_Call_rpEnvSensor_Read(float32 *temp_c, float32 *hum_pct);
-Std_ReturnType Rte_Call_rpAccel_Read(float32 *ax_g, float32 *ay_g, float32 *az_g);
-void Rte_Get_Dht11Stats(uint32 *ok_cnt, uint32 *err_cnt);
+void Rte_Set_SafetyFault(Safety_FaultReasonType fault);
 
 #endif /* RTE_H */

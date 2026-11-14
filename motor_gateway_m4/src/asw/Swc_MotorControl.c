@@ -21,9 +21,9 @@ static const float32 INTEGRAL_LIMIT_MAX = 1.0f;
 static const float32 INTEGRAL_LIMIT_MIN = -1.0f;
 
 /* Duty cycle limits when running (target > 0.0f) to guarantee visible PWM square wave:
- * [25.0%, 75.0%] ensures PD14 (TIM4_CH3) ALWAYS outputs a crisp 20 kHz (50 us period)
- * PWM wave around 50% - 75% duty cycle */
-static const float32 DUTY_ACTIVE_MIN = 25.0f;
+ * [25.0%, 85.0%] ensures PD14 (TIM4_CH3) outputs a crisp 20 kHz (50 us period)
+ * PWM wave up to 85% duty cycle */
+#define DUTY_ACTIVE_MIN 25.0f
 static const float32 DUTY_ACTIVE_MAX = 85.0f;
 
 /* General duty cycle saturation bounds [-90.0%, 90.0%] */
@@ -133,20 +133,22 @@ void Runnable_MotorControl_10ms(void)
             duty = p_term + i_term + d_term;
 
             /* Saturation clamping on output duty:
-             * When target speed > 0.0f, clamp strictly to [25.0%, 75.0%] so that
-             * PD14 (TIM4_CH3) ALWAYS outputs a crisp 20 kHz PWM wave around 50% - 75% duty cycle.
+             * Supports bidirectional target speeds and allows PID output to go
+             * down to 0.0f when decelerating or overshooting.
+             * Forward rotation (target_rpm > 0.0f): clamped to [0.0f, DUTY_ACTIVE_MAX].
+             * Reverse rotation (target_rpm < 0.0f): clamped to [-DUTY_ACTIVE_MAX, 0.0f].
              */
             if (target_rpm > 0.0f) {
                 if (duty > DUTY_ACTIVE_MAX) {
                     duty = DUTY_ACTIVE_MAX;
-                } else if (duty < DUTY_ACTIVE_MIN) {
-                    duty = DUTY_ACTIVE_MIN;
+                } else if (duty < 0.0f) {
+                    duty = 0.0f;
                 }
             } else {
-                if (duty > DUTY_LIMIT_MAX) {
-                    duty = DUTY_LIMIT_MAX;
-                } else if (duty < DUTY_LIMIT_MIN) {
-                    duty = DUTY_LIMIT_MIN;
+                if (duty < -DUTY_ACTIVE_MAX) {
+                    duty = -DUTY_ACTIVE_MAX;
+                } else if (duty > 0.0f) {
+                    duty = 0.0f;
                 }
             }
         }

@@ -50,7 +50,7 @@ void Cdd_L298n_EmergencyStop(void)
     /* Immediately cut PWM drive to ENA pin */
     Pwm_SetOutputToIdle(PWM_CH_MOTOR_ENA);
 
-    /* Safe state: both direction inputs LOW */
-    Dio_WriteChannel(DIO_CH_L298N_IN1, STD_LOW);
-    Dio_WriteChannel(DIO_CH_L298N_IN2, STD_LOW);
+    /* Safe state: active electromagnetic braking (IN1 = 1, IN2 = 1, Duty = 0%) per FR-M7 */
+    Dio_WriteChannel(DIO_CH_L298N_IN1, STD_HIGH);
+    Dio_WriteChannel(DIO_CH_L298N_IN2, STD_HIGH);
 }
