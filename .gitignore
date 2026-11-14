@@ -54,3 +54,15 @@ desktop.ini
 *.db-shm
 telemetry.db
 *.log
+
+# Test & coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+tests/test_m4_asw
+!tests/test_m4_asw.c
+*.exe
+
+# Media binaries
+*.mp4
+
