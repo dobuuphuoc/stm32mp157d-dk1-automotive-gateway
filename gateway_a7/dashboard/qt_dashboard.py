@@ -10,7 +10,7 @@ Theme:       High-End Digital Cockpit / Instrument Cluster (Virtual Cockpit)
 ================================================================================
 """
 
-import sys, os, time, math, socket
+import sys, os, time, math, socket, argparse
 from collections import deque
 
 try:
@@ -464,13 +464,17 @@ class CommWorker(QThread):
     sig_status = pyqtSignal(str, bool)
     sig_stats = pyqtSignal(int, int, float)
 
-    def __init__(self, mode="demo", port="/dev/ttyACM0", baud=115200, host="10.8.82.37", tcp_port=8888):
+    def __init__(self, mode="demo", port="/dev/ttyACM0", baud=115200, 
+                 host=os.environ.get("GATEWAY_TCP_HOST", "127.0.0.1"), 
+                 tcp_port=int(os.environ.get("GATEWAY_TCP_PORT", 8888)),
+                 serial_shell_bridge=False):
         super().__init__()
         self.mode = mode
         self.port = port
         self.baud = baud
         self.host = host
         self.tcp_port = tcp_port
+        self.serial_shell_bridge = serial_shell_bridge
         self.running = True
         self.ser = None
         self.sock = None
@@ -506,11 +510,12 @@ class CommWorker(QThread):
         try:
             self.ser = serial.Serial(self.port, self.baud, timeout=0.1)
             self.sig_status.emit(f"Da ket noi Serial {self.port} @ {self.baud}", True)
-            self.ser.write(b'\x03\n')
-            time.sleep(0.2)
-            self.ser.reset_input_buffer()
-            self.ser.write(b"cat /dev/ttyRPMSG0\n")
-            time.sleep(0.2)
+            if self.serial_shell_bridge:
+                self.ser.write(b'\x03\n')
+                time.sleep(0.2)
+                self.ser.reset_input_buffer()
+                self.ser.write(b"cat /dev/ttyRPMSG0\n")
+                time.sleep(0.2)
         except Exception as e:
             self.sig_status.emit(f"Loi ket noi Serial: {str(e)}", False)
             return
@@ -520,7 +525,10 @@ class CommWorker(QThread):
             while self.tx_queue:
                 cmd = self.tx_queue.popleft()
                 try:
-                    payload = f"\x03\necho '{cmd}' > /dev/ttyRPMSG0\ncat /dev/ttyRPMSG0\n".encode()
+                    if self.serial_shell_bridge:
+                        payload = f"\x03\necho '{cmd}' > /dev/ttyRPMSG0\ncat /dev/ttyRPMSG0\n".encode("utf-8")
+                    else:
+                        payload = f"{cmd}\n".encode("utf-8")
                     self.ser.write(payload)
                 except Exception as e:
                     self.sig_status.emit(f"Loi truyen lenh: {e}", True)
@@ -540,7 +548,8 @@ class CommWorker(QThread):
 
         if self.ser and self.ser.is_open:
             try:
-                self.ser.write(b'\x03\n')
+                if self.serial_shell_bridge:
+                    self.ser.write(b'\x03\n')
                 self.ser.close()
             except:
                 pass
@@ -727,8 +736,16 @@ class CommWorker(QThread):
 # MAIN DIGITAL COCKPIT WINDOW
 # ==============================================================================
 class AutomotiveCockpitWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, tcp_host=None, tcp_port=None, serial_port="/dev/ttyACM0", serial_shell_bridge=False):
         super().__init__()
+        self.tcp_host = tcp_host or os.environ.get("GATEWAY_TCP_HOST", "127.0.0.1")
+        try:
+            self.tcp_port = int(tcp_port or os.environ.get("GATEWAY_TCP_PORT", 8888))
+        except (ValueError, TypeError):
+            self.tcp_port = 8888
+        self.serial_port = serial_port
+        self.serial_shell_bridge = serial_shell_bridge
+
         self.setWindowTitle("STM32MP157 Automotive Virtual Cockpit & Domain Gateway (AUTOSAR / OpenSTLinux)")
         self.resize(1380, 880)
 
@@ -763,8 +780,8 @@ class AutomotiveCockpitWindow(QMainWindow):
         tbl.addLayout(title_box); tbl.addStretch()
 
         self.combo_conn = QComboBox()
-        self.combo_conn.addItems(["Demo Simulation", "Serial (/dev/ttyACM0)", "TCP (10.8.82.37:8888)"])
-        self.combo_conn.setFixedWidth(190)
+        self.combo_conn.addItems(["Demo Simulation", f"Serial ({self.serial_port})", f"TCP ({self.tcp_host}:{self.tcp_port})"])
+        self.combo_conn.setFixedWidth(220)
         self.btn_connect = QPushButton("CONNECT"); self.btn_connect.setObjectName("btnConnect"); self.btn_connect.setFixedWidth(110)
         self.btn_connect.clicked.connect(self._toggle_connection)
         self.lbl_conn_ind = QLabel("● DISCONNECTED"); self.lbl_conn_ind.setObjectName("connStatusDisconnected")
@@ -903,9 +920,17 @@ class AutomotiveCockpitWindow(QMainWindow):
         if "Demo" in choice:
             self.comm_worker = CommWorker(mode="demo")
         elif "Serial" in choice:
-            self.comm_worker = CommWorker(mode="serial", port="/dev/ttyACM0")
+            self.comm_worker = CommWorker(
+                mode="serial", 
+                port=self.serial_port,
+                serial_shell_bridge=self.serial_shell_bridge
+            )
         else:
-            self.comm_worker = CommWorker(mode="tcp", host="10.8.82.37", tcp_port=8888)
+            self.comm_worker = CommWorker(
+                mode="tcp", 
+                host=self.tcp_host, 
+                tcp_port=self.tcp_port
+            )
 
         self.comm_worker.sig_telemetry.connect(self._on_telemetry)
         self.comm_worker.sig_fault.connect(self._on_fault)
@@ -1001,15 +1026,13 @@ class AutomotiveCockpitWindow(QMainWindow):
             ess = abs(tgt - rpm)
             if ess <= 2.0:
                 self.lbl_nfr5_badge.setText(f"e_ss: {ess:.2f} RPM (PASSED NFR-5)")
-                self.lbl_nfr5_badge.setObjectName("badgePass")
+                self.lbl_nfr5_badge.setStyleSheet("background-color: #0d2818; color: #00e676; font-weight: bold; border: 1px solid #00e676; border-radius: 4px; padding: 3px 8px;")
             else:
                 self.lbl_nfr5_badge.setText(f"e_ss: {ess:.2f} RPM (Transient)")
-                self.lbl_nfr5_badge.setObjectName("badgeWarn")
+                self.lbl_nfr5_badge.setStyleSheet("background-color: #382c10; color: #ffab00; font-weight: bold; border: 1px solid #ffab00; border-radius: 4px; padding: 3px 8px;")
         else:
             self.lbl_nfr5_badge.setText("e_ss: 0.00 RPM (PASSED NFR-5)")
-            self.lbl_nfr5_badge.setObjectName("badgePass")
-
-        self._apply_cockpit_theme()
+            self.lbl_nfr5_badge.setStyleSheet("background-color: #0d2818; color: #00e676; font-weight: bold; border: 1px solid #00e676; border-radius: 4px; padding: 3px 8px;")
 
     def _on_fault(self, fd: dict):
         reason = fd.get("REASON", "FAULT")
@@ -1147,9 +1170,27 @@ class AutomotiveCockpitWindow(QMainWindow):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Automotive Virtual Cockpit Dashboard")
+    parser.add_argument("--tcp-host", type=str, 
+                        default=os.environ.get("GATEWAY_TCP_HOST", "127.0.0.1"),
+                        help="TCP Gateway IP/Hostname (default: $GATEWAY_TCP_HOST or 127.0.0.1)")
+    parser.add_argument("--tcp-port", type=int, 
+                        default=int(os.environ.get("GATEWAY_TCP_PORT", 8888)),
+                        help="TCP Gateway Port (default: $GATEWAY_TCP_PORT or 8888)")
+    parser.add_argument("--serial-port", type=str, default="/dev/ttyACM0",
+                        help="Serial Port (default: /dev/ttyACM0)")
+    parser.add_argument("--serial-shell-bridge", action="store_true",
+                        help="Use shell wrapper echo/cat over console serial")
+    args = parser.parse_args()
+
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    win = AutomotiveCockpitWindow()
+    win = AutomotiveCockpitWindow(
+        tcp_host=args.tcp_host,
+        tcp_port=args.tcp_port,
+        serial_port=args.serial_port,
+        serial_shell_bridge=args.serial_shell_bridge
+    )
     win.show()
     sys.exit(app.exec_() if hasattr(app, "exec_") else app.exec())
 

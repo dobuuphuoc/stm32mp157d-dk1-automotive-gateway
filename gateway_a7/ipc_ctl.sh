@@ -135,21 +135,23 @@ cmd_hb_loop() {
     done
 }
 
-calc_crc16_python() {
-    local payload="$1"
-    python3 -c '
-import sys
-data = sys.argv[1].encode("ascii")
-crc = 0xFFFF
-for b in data:
-    crc ^= (b << 8)
-    for _ in range(8):
-        if crc & 0x8000:
-            crc = ((crc << 1) ^ 0x1021) & 0xFFFF
-        else:
-            crc = (crc << 1) & 0xFFFF
-print(f"{crc:04X}")
-' "${payload}" 2>/dev/null || echo "NONE"
+calc_crc16_bash() {
+    local str="$1"
+    local crc=65535 # 0xFFFF
+    local len=${#str}
+    local i b j
+    for (( i=0; i<len; i++ )); do
+        printf -v b "%d" "'${str:i:1}"
+        crc=$(( crc ^ (b << 8) ))
+        for (( j=0; j<8; j++ )); do
+            if (( crc & 32768 )); then
+                crc=$(( ((crc << 1) ^ 4129) & 65535 )) # 0x1021 = 4129, 0xFFFF = 65535
+            else
+                crc=$(( (crc << 1) & 65535 ))
+            fi
+        done
+    done
+    printf "%04X" "${crc}"
 }
 
 cmd_monitor() {
@@ -162,18 +164,18 @@ cmd_monitor() {
     # Send an initial ping so M4 learns dest_addr immediately
     printf "HB\n" > "${RPMSG_DEV}"
 
-    while IFS= read -r line < "${RPMSG_DEV}"; do
+    while IFS= read -r line; do
         # Strip trailing carriage return
         line="${line//$'\r'/}"
         [ -z "${line}" ] && continue
         
-        # Check if line matches telemetry or status frame
-        if [[ "${line}" =~ ^(\$TELEM|\$STAT).*[*]([0-9A-Fa-f]{4})$ ]]; then
+        # Check if line matches telemetry, status, or fault frame
+        if [[ "${line}" =~ ^(\$TELEM|\$STAT|\$FAULT).*[*]([0-9A-Fa-f]{4})$ ]]; then
             crc_received="${BASH_REMATCH[2]}"
             payload="${line%\**}" # everything before '*'
             
-            crc_calculated=$(calc_crc16_python "${payload}")
-            if [ "${crc_calculated}" != "NONE" ]; then
+            crc_calculated=$(calc_crc16_bash "${payload}")
+            if [ -n "${crc_calculated}" ]; then
                 if [ "${crc_calculated}" = "${crc_received^^}" ]; then
                     crc_status="${GREEN}CRC OK (${crc_received})${NC}"
                 else
@@ -187,7 +189,7 @@ cmd_monitor() {
         else
             echo -e "[$(date '+%H:%M:%S.%3N')] [RAW]: ${line}"
         fi
-    done
+    done < "${RPMSG_DEV}"
 }
 
 cmd_test_safety() {
